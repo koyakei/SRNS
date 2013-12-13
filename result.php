@@ -35,10 +35,7 @@ function submitMainTag() {
 <title>Top</title>
 </head>
 <body>
-<<<<<<< HEAD
 <br>
-=======
->>>>>>> f42df02111009e406b274275458cf600fb2c46b7
 <form action='result.php' method='post'>
 <?php
 ini_set( 'display_errors', 1 );
@@ -46,10 +43,7 @@ require_once("cmn/debug.php");
 require_once("cmn/utils.php");
   $pdo = db_open();
 $tagID = $_REQUEST['tagID'];
-<<<<<<< HEAD
 $articleID = $_REQUEST['articleID'];
-=======
->>>>>>> f42df02111009e406b274275458cf600fb2c46b7
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
 $articleEdit = htmlspecialchars($_POST['articleEdit']);
 if ($articleEdit != null) {
@@ -78,16 +72,9 @@ while ($row = $tagG->fetch()) {
 	$searchingTagA[$i] = $searchingTag;
 	$i++;
 };
-<<<<<<< HEAD
 ?>
 <?php
 $sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$tagID AND  `LINK`.`LTo` =  `article`.`ID` ";
-=======
-
-?>
-<?php
-$sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$tagID AND `LINK`.`LTo` =  `article`.`ID` ";
->>>>>>> f42df02111009e406b274275458cf600fb2c46b7
 	$articleSelect = $pdo->query($sql);
 	while ($row = $articleSelect->fetch()) {
 				$articleName = htmlspecialchars($row['name']);
@@ -105,7 +92,6 @@ $sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$
 				if ($tagList["$tagName"] == null) {
 				$tagList["$tagName"] = array();
 				}
-<<<<<<< HEAD
      array_push($tagList["$tagName"], array( 'name' => $tagName,'ID' => $ID));
 					};
 				$h++;
@@ -138,15 +124,6 @@ echo "</tr>";
 }
 ?>
 </table>
-=======
-     array_push($tagList["$tagName"], array( 'name' => $tagName,'ID' => $ID);
-					};
-				$h++;
-	};
-echo "a";
-	
-?>
->>>>>>> f42df02111009e406b274275458cf600fb2c46b7
 </form>
 </html>
 

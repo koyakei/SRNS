@@ -1,0 +1,145 @@
+@charset "UTF-8";
+/* CSS Document */
+
+body{
+	margin:0px;
+	padding:0px;
+	font-size:12px;
+	line-height:18px;
+}
+.wrap{
+	margin:0px auto;
+	text-align:center;
+	width:320px;
+	overflow:hidden;
+	margin-bottom:70px;
+}
+.space5{
+	height:5px;
+	clear:both;
+}
+.space10{
+	height:10px;
+	clear:both;
+}
+.space20{
+	height:20px;
+	clear:both;
+}
+/*各ページ共通要素*/
+
+/*ヘッダー*/
+.heder{
+	width:320px;
+	height:50px;
+	background-image:url(../images/bgp_heder.gif);
+}
+.heder_btn_l{
+	width:60px;
+	height:30px;
+	margin:10px 0px 10px 10px;
+	float:left;
+}
+.heder_tit{
+	width:180px;
+	height:50px;
+	line-height:50px;
+	font-size:18px;
+	font-weight:bold;
+	color:#FFF;
+	float:left;
+	text-shadow:#000000 1px 1px 1px;
+    filter:shadow(color=#000000,direction=135,strength=1);
+}
+.heder_btn_r{
+	width:60px;
+	height:30px;
+	margin:10px 10px 10px 0px;
+	float:left;
+}
+/*アカウントステータス*/
+.status{
+	width:320px;
+	height:20px;
+	background-color:#000;
+	color:#FFF;
+	line-height:20px;
+}
+
+/*フッター*/
+.fotter{
+	width:320px;
+	height:60px;
+	/*margin-top:10px;*/
+	position: fixed;
+    bottom: 0;
+	zoom: 1;
+    z-index: 100;
+}
+.fotter img{
+	float:left;
+}
+
+/*検索ホーム*/
+/*検索窓段組み*/
+.search_home_lbox{
+	float:left;
+	width:230px;
+	margin-top:10px;
+	text-align:right;
+	height:32px;
+}
+.search_home_txt_area{
+	width:200px;
+	height:32px;
+	font-size:24px;
+	line-height:32px;
+	text-align:left;
+}
+.search_home_sendbtn{
+	
+	height:32px;
+	margin:0px;
+	font-size:18px;
+	line-height:32px;
+	text-align:center;
+}
+.search_home_rbox{
+	float:left;
+	width:80px;
+	margin-top:10px;
+	margin-left:10px;
+	text-align:left;
+	height:32px;
+}
+
+/*ログイン*/
+.login_box{
+	background-image:url(../images/bgp_form_txt_area.gif);
+	height:40px;
+	padding:0px 10px;
+	overflow:hidden;
+}
+.login_box p{
+	margin:0px;
+	text-align:left;
+	font-size:18px;
+	line-height:40px;
+	float:left;
+}
+.login_box_input{
+	float:left;
+	font-size:18px;
+	background:none;
+	border:0px;
+	margin-top:6px;
+	margin-left:5px;
+	width:170px;
+}
+.login_send_btn{
+	background-image:url(../images/btn_send_login.gif);
+	height:52px;
+	width:280px;
+	border:0px;
+	font-size:0px;
+}

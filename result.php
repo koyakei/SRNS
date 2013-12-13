@@ -48,7 +48,7 @@ $tagEdit = htmlspecialchars($_POST['tagEdit']);
 $articleEdit = htmlspecialchars($_POST['articleEdit']);
 if ($articleEdit != null) {
 $pdo->beginTransaction();
- $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `Tag`.`ID` = $articleID;";
+ $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `article`.`ID` = $articleID;";
 $pdo->exec($sql); $pdo->commit();
 };
 if ($tagEdit != null) {
@@ -111,16 +111,16 @@ foreach ($searchingTagA as $searchingTag) {
 <table border="1" class="tablesorter">
 
 <?php
-foreach ($articleA as $article) {
-	echo "<tr><td><a href='result.php?ID=$article[ID]' target='_blank'>$article[name]</a>
+foreach ($tagList as $key => $value) {
+	foreach ($value as $key2 => $record) {
+
+		foreach ($articleA as $article) {
+echo "<tr><td><a href='result.php?ID=$article[ID]' target='_blank'>$article[name]</a>
 		<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>
-		<div id='editMainTag'><input name='articleEdit' value='$article[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='ID' value='$article[ID]' type='hidden' /></td>";
-	foreach ($tagList as $key => $value) {
-		foreach ($value as $key2 => $record) {
-		echo "<td>$record[name]</td>";
+		<div id='editMainTag'><input name='articleEdit' value='$article[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='articleID' value='$article[ID]' type='hidden' />$article[ID]</td>";
+		echo "<td><a href='result.php?tagID=$record[ID]' target='_blank'>$record[name]</a><input name='tagID' value='$record[ID]' type='hidden' /></td></tr>";
 		}
 	}
-echo "</tr>";
 }
 ?>
 </table>

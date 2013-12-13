@@ -22,8 +22,8 @@ if ($search2 == null) {
 $st = $pdo->query($sql);
   while ($row = $st->fetch()) {
 	$name = htmlspecialchars($row['name']);
-	$ID = htmlspecialchars($row['ID']);
-	echo "<tr><td><a href='result.php?ID=$ID' target=’_blank’>$name</a></td></tr>";
+	$tagID = htmlspecialchars($row['ID']);
+	echo "<tr><td><a href='result.php?tagID=$tagID' target=’_blank’>$name</a></td></tr>";
   }
 $pdo = null;
 ?>

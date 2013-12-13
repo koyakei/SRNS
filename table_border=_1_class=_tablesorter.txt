@@ -1,0 +1,16 @@
+<table border="1" class="tablesorter">
+<?php
+foreach ($searchingTagA as $searchingTag) {
+	echo "<tr><td><a href='result.php?ID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a>
+		<div id='viewMainTag' onClick='editMainTag();' ><input value='•ÒW' type='submit' name='Edit'></div>
+		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagID' value='$tagID' type='hidden' /></td></tr>";
+};
+?>
+</table>
+$articleEdit = htmlspecialchars($_POST['articleEdit']);
+$articleID = $_REQUEST['articleID'];
+if ($articleEdit != null) {
+$pdo->beginTransaction();
+ $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `Tag`.`ID` = $articleID;";
+$pdo->exec($sql); $pdo->commit();
+};

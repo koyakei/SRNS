@@ -42,7 +42,17 @@ ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
 require_once("cmn/utils.php");
   $pdo = db_open();
+if ($_REQUEST['tagIDList'] != null) {
+$tagIDList = $_REQUEST['tagIDList'];
+$tagID = $tagIDList[0];
+} else {
 $tagID = $_REQUEST['tagID'];
+$tagIDList[0] = $tagID;
+
+}
+$whereOR = "`ID`=" . join(" OR `ID`=", $tagIDList);
+$whereLinkOR = "(`LINK`.`LFrom` =" . join(" OR `LINK`.`LFrom` =", $tagIDList).")";
+$whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
 $articleEdit = htmlspecialchars($_POST['articleEdit']);
@@ -57,7 +67,7 @@ $pdo->beginTransaction();
 $pdo->exec($sql); $pdo->commit();
   $sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";
 } else {
-  $sql = "SELECT * FROM `Tag` WHERE `ID` =$tagID";
+  $sql = "SELECT * FROM `Tag` WHERE $whereOR";
 }
 $tagG = $pdo->query($sql);
 $i = 0;
@@ -74,7 +84,8 @@ while ($row = $tagG->fetch()) {
 ?>
 <?php
 $table = array();
-$sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$tagID AND  `LINK`.`LTo` =  `article`.`ID` ";
+$sql = "SELECT  `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
+print_r ($sql);
 	$articleSelect = $pdo->query($sql);
 	while ($row = $articleSelect->fetch()) {
 		$articleName = htmlspecialchars($row['name']);
@@ -104,19 +115,23 @@ $sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$
 <form action='result.php' method='post'>
 <table border="1" class="tablesorter">
 <?php
+	
 foreach ($searchingTagA as $searchingTag) {
-	echo "<tr><td><a href='result.php?ID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a>
+echo "<tr>";
+	echo"<td><a href='result.php?ID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a>
 		<div id='viewMainTag' onClick='editMainTag();' ><input value='編集' type='submit' name='Edit'></div>
-		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagID' value='$searchingTag[ID]' type='hidden' /></td></tr>";
+		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /></td>";
 };
+
+echo "</tr>";
 ?>
 </table>
 </form>
-<form action='result.php' method='post'>
+
 <table border="1">
 <?php
 foreach ($table as $articleA){
-echo "<tr><td><a href='result.php?ID=";
+echo "<tr><form action='result.php' method='post'><td><a href='result.php?ID=";
 echo $articleA["article"][ID];
 echo "' target='_blank'>";
 echo $articleA["article"][name];
@@ -127,22 +142,35 @@ echo $articleA["article"][name];
 echo "' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='articleID' value='";
 echo $articleA["article"][ID];
 echo "' type='hidden' />";
-echo "</td>";
-
-
-foreach ($articleA["tag"] as $tagA){
-	
-	echo "<td><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a><input name='tagID' value='$tagA[ID]' type='hidden' /></td>";
-
+$k = 0;
+foreach ($searchingTagA as $searchingTag) {
+echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+$currentSearchingTag = $searchingTag[ID];
+$k++;
 }
-echo "<td><div id='viewMainTag' onClick='addEachTag();' ><input value='追加' type='submit' name='Add'></div>
-		<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /></div></td>";
-echo "</tr>";
+echo "</td></form>";
+
+	foreach ($articleA["tag"] as $tagA){
+	echo "<td>";
+	foreach ($searchingTagA as $searchingTag) {
+		print_r ($searchingTag[ID]);
+		echo "<br>";
+		print_r ($tagIDList);
+		
+		}
+	if (false == in_array($searchingTag[ID],$tagIDList)) {
+echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form>";
+}
+		echo "<form action='result.php' method='post'><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></td></form>";
+	}
+	echo "<form action='result.php' method='post'><td><div id='viewMainTag' onClick='addEachTag();' ><input value='追加' type='submit' name='Add'></div>
+			<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /></div></td></form>";
+	echo "</tr>";
+
 }
 
 ?>
 </table>
-</form>
 </html>
 
 

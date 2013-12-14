@@ -74,30 +74,33 @@ while ($row = $tagG->fetch()) {
 };
 ?>
 <?php
+$table = array();
 $sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$tagID AND  `LINK`.`LTo` =  `article`.`ID` ";
 	$articleSelect = $pdo->query($sql);
 	while ($row = $articleSelect->fetch()) {
-				$articleName = htmlspecialchars($row['name']);
-				$articleID = htmlspecialchars($row['ID']);
-				$article = array(
-				'name' => $articleName,
-				'ID' => $articleID
-				);
-			$articleA[$h] = $article;
-				$sql = "SELECT `Tag` . * FROM  `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID` ";
-				$articleD = $pdo->query($sql);
-				while ($row = $articleD->fetch()) {
-				$tagName = htmlspecialchars($row['name']); 
-				$ID = htmlspecialchars($row['ID']);
-				if ($tagList["$tagName"] == null) {
-				$tagList["$tagName"] = array();
-				}
-     array_push($tagList["$tagName"], array( 'name' => $tagName,'ID' => $ID));
-					};
-				$h++;
-	};
-
-	
+		$articleName = htmlspecialchars($row['name']);
+		$articleID = htmlspecialchars($row['ID']);
+		$article = array(
+		'name' => $articleName,
+		'ID' => $articleID
+		);
+		
+	$j = 0;
+		$sql = "SELECT `Tag` . * FROM  `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID` ";
+		$articleD = $pdo->query($sql);
+		while ($row = $articleD->fetch()) {
+			$tagName = htmlspecialchars($row['name']); 
+			$subTagID = htmlspecialchars($row['ID']);
+			$tagA = array(
+			'name' => $tagName,
+			'ID' => $subTagID
+			);
+			$table[$h]["tag"][$j] = $tagA;
+			$j++;
+		}
+		$table[$h]["article"]= $article;
+		$h++;
+	}
 ?>
 <table border="1" class="tablesorter">
 <?php
@@ -108,21 +111,45 @@ foreach ($searchingTagA as $searchingTag) {
 };
 ?>
 </table>
-<table border="1" class="tablesorter">
-
+<table border="0" class="tablesorter">
+<tr>
+<td>
+<table border="1">
 <?php
-foreach ($tagList as $key => $value) {
-	foreach ($value as $key2 => $record) {
-
-		foreach ($articleA as $article) {
-echo "<tr><td><a href='result.php?ID=$article[ID]' target='_blank'>$article[name]</a>
+foreach ($table as $articleA){
+print ($articleA["article"][ID]);
+echo "<tr><td><a href='result.php?ID=";
+echo $articleA["article"][ID];
+echo "' target='_blank'>";
+echo $articleA["article"][name];
+echo "</a>
 		<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>
-		<div id='editMainTag'><input name='articleEdit' value='$article[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='articleID' value='$article[ID]' type='hidden' />$article[ID]</td>";
-		echo "<td><a href='result.php?tagID=$record[ID]' target='_blank'>$record[name]</a><input name='tagID' value='$record[ID]' type='hidden' /></td></tr>";
-		}
-	}
+		<div id='editMainTag'><input name='articleEdit' value='";
+echo $articleA["article"][name];
+echo "' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='articleID' value='";
+echo $articleA["article"][ID];
+echo "' type='hidden' />";
+echo $articleA["article"][ID];
+echo "</td>";
+
+
+foreach ($articleA["tag"] as $tagA){
+print ($tagA[ID]);
+	
+	echo "<td><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a><input name='tagID' value='$tagA[ID]' type='hidden' /></td>";
 }
+echo "</tr>";
+}
+
 ?>
+</table>
+</td>
+<td>
+<table border="1" class="tablesorter" style="float:left;">
+
+</table>
+</td>
+</tr>
 </table>
 </form>
 </html>

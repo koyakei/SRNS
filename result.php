@@ -36,7 +36,7 @@ function submitMainTag() {
 </head>
 <body>
 <br>
-<form action='result.php' method='post'>
+
 <?php
 ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
@@ -60,7 +60,6 @@ $pdo->exec($sql); $pdo->commit();
   $sql = "SELECT * FROM `Tag` WHERE `ID` =$tagID";
 }
 $tagG = $pdo->query($sql);
-$data = array();
 $i = 0;
 while ($row = $tagG->fetch()) {
 	$name = htmlspecialchars($row['name']);
@@ -102,6 +101,7 @@ $sql = "SELECT  `article` . * FROM  `LINK` ,  `article` WHERE  `LINK`.`LFrom` =$
 		$h++;
 	}
 ?>
+<form action='result.php' method='post'>
 <table border="1" class="tablesorter">
 <?php
 foreach ($searchingTagA as $searchingTag) {
@@ -111,13 +111,11 @@ foreach ($searchingTagA as $searchingTag) {
 };
 ?>
 </table>
-<table border="0" class="tablesorter">
-<tr>
-<td>
+</form>
+<form action='result.php' method='post'>
 <table border="1">
 <?php
 foreach ($table as $articleA){
-print ($articleA["article"][ID]);
 echo "<tr><td><a href='result.php?ID=";
 echo $articleA["article"][ID];
 echo "' target='_blank'>";
@@ -129,27 +127,20 @@ echo $articleA["article"][name];
 echo "' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='articleID' value='";
 echo $articleA["article"][ID];
 echo "' type='hidden' />";
-echo $articleA["article"][ID];
 echo "</td>";
 
 
 foreach ($articleA["tag"] as $tagA){
-print ($tagA[ID]);
 	
 	echo "<td><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a><input name='tagID' value='$tagA[ID]' type='hidden' /></td>";
+
 }
+echo "<td><div id='viewMainTag' onClick='addEachTag();' ><input value='追加' type='submit' name='Add'></div>
+		<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /></div></td>";
 echo "</tr>";
 }
 
 ?>
-</table>
-</td>
-<td>
-<table border="1" class="tablesorter" style="float:left;">
-
-</table>
-</td>
-</tr>
 </table>
 </form>
 </html>

@@ -50,7 +50,12 @@ $tagID = $_REQUEST['tagID'];
 $tagIDList[0] = $tagID;
 
 }
+$searchType = $_REQUEST['searchType'];
+if ($searchType == null) {
+$searchType = 0;
+}
 $whereOR = "`ID`=" . join(" OR `ID`=", $tagIDList);
+$whereLinkAND = "(`LINK`.`LFrom` =" . join(" AND `LINK`.`LFrom` =", $tagIDList).")";
 $whereLinkOR = "(`LINK`.`LFrom` =" . join(" OR `LINK`.`LFrom` =", $tagIDList).")";
 $whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
@@ -84,7 +89,13 @@ while ($row = $tagG->fetch()) {
 ?>
 <?php
 $table = array();
-$sql = "SELECT  `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
+//OR検索
+if ($searchType == null) {
+$searchType = 0;
+$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
+} else{
+$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
+}
 print_r ($sql);
 	$articleSelect = $pdo->query($sql);
 	while ($row = $articleSelect->fetch()) {
@@ -94,7 +105,6 @@ print_r ($sql);
 		'name' => $articleName,
 		'ID' => $articleID
 		);
-		
 	$j = 0;
 		$sql = "SELECT `Tag` . * FROM  `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID` ";
 		$articleD = $pdo->query($sql);
@@ -112,15 +122,35 @@ print_r ($sql);
 		$h++;
 	}
 ?>
+<p>
+<form action='result.php' method='post'>
+<?php
+if ($searchType == 0) {
+echo '<input type="radio" name="searchType" value="0" checked> AND
+<input type="radio" name="searchType" value="1""> OR';
+} else {
+echo '<input type="radio" name="searchType" value="0" "> AND
+<input type="radio" name="searchType" value="1" checked> OR';
+}
+	$allRequest = $_REQUEST;
+	print_r ($allRequest);
+	foreach ($tagIDList as $tagIDsepareted){
+	print $tagIDsepareted;
+	echo "<input name='tagIDList[]' value='$tagIDsepareted'type='hidden' />";
+	}
+?>
+<input type="submit" value="変更">
+</form>
+
+</p>
 <form action='result.php' method='post'>
 <table border="1" class="tablesorter">
 <?php
-	
 foreach ($searchingTagA as $searchingTag) {
 echo "<tr>";
 	echo"<td><a href='result.php?ID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a>
 		<div id='viewMainTag' onClick='editMainTag();' ><input value='編集' type='submit' name='Edit'></div>
-		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /></td>";
+		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /><input name='tagIDList[]' value='$SearchType'type='hidden' /></td>";
 };
 
 echo "</tr>";
@@ -152,14 +182,9 @@ echo "</td></form>";
 
 	foreach ($articleA["tag"] as $tagA){
 	echo "<td>";
-	foreach ($searchingTagA as $searchingTag) {
-		print_r ($searchingTag[ID]);
-		echo "<br>";
-		print_r ($tagIDList);
-		
-		}
-	if (false == in_array($searchingTag[ID],$tagIDList)) {
-echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form>";
+	print_r ($tagA[ID]);
+	if (false == in_array($tagA[ID],$tagIDList)) {
+echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$currentSearchingTag'type='hidden' /></form>";
 }
 		echo "<form action='result.php' method='post'><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></td></form>";
 	}

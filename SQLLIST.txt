@@ -1,0 +1,28 @@
+SELECT `Tag` . `name` 
+FROM  `User_TBL`INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `ID`
+
+ SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =100000 AND  `LINK`.`LFrom` = `Tag`.`ID` 
+
+ SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`
+
+SELECT * 
+FROM  `Tag` 
+WHERE  `name` LIKE  'ê∂äU'
+
+SELECT `Tag`,* ,`User_TBL`.* FROM 
+ `User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `ID`   WHERE  `name` LIKE  'ê∂äU'
+
+SELECT * 
+FROM  `Tag` 
+WHERE  `name` LIKE  '$search1'
+$sql = "SELECT * FROM  `Tag` WHERE  `name` LIKE  '%$search1%'
+
+SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM
+ `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`
+
+SELECT `Tag`.* ,`User_TBL`.* FROM 
+ `User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU'
+
+
+SELECT `Tag`.* ,`User_TBL`.* FROM 
+ `User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU'

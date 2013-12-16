@@ -44,15 +44,17 @@ require_once("cmn/utils.php");
   $pdo = db_open();
 if ($_REQUEST['tagIDList'] != null) {
 $tagIDList = $_REQUEST['tagIDList'];
+
 $tagID = $tagIDList[0];
 } else {
 $tagID = $_REQUEST['tagID'];
 $tagIDList[0] = $tagID;
 }
-
+$targetDelIDTo = $_REQUEST['targetDelIDTo'];
+$targetDelIDFrom = $_REQUEST['targetDelIDFrom'];
 $searchType = $_REQUEST['searchType'];
 if ($searchType == null) {
-$searchType = 0;
+$searchType = 1;
 }
 $whereOR = "`ID`=" . join(" OR `ID`=", $tagIDList);
 $whereLinkAND = "(`LINK`.`LFrom` =" . join(" AND `LINK`.`LFrom` =", $tagIDList).")";
@@ -61,6 +63,11 @@ $whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
 $articleEdit = htmlspecialchars($_POST['articleEdit']);
+if ($targetDelIDFrom != null) {
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $targetDelIDFrom AND `LINK`.`LTo` = $targetDelIDTo;";
+$pdo->exec($sql); $pdo->commit();
+}
 if ($articleEdit != null) {
 $pdo->beginTransaction();
  $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `article`.`ID` = $articleID;";
@@ -94,41 +101,49 @@ $table = array();
 
 if ($searchType == 1) {
 //OR検索
-$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
+	$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
 } else{
-$sql = "SELECT  `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` GROUP BY  `ID` HAVING COUNT( * ) >=2";
+	$sql = "SELECT  `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` GROUP BY  `ID` HAVING COUNT( * ) >=2";
 }
 print_r ($sql);
-	$articleSelect = $pdo->query($sql);
-	while ($row = $articleSelect->fetch()) {
-		$articleName = htmlspecialchars($row['name']);
-		$articleID = htmlspecialchars($row['ID']);
-		$article = array(
-		'name' => $articleName,
-		'ID' => $articleID
-		);
+$articleSelect = $pdo->query($sql);
+$k = 0;
+while ($row = $articleSelect->fetch()) {
+	$articleName = htmlspecialchars($row['name']);
+	$articleID = htmlspecialchars($row['ID']);
+	$article = array(
+	'name' => $articleName,
+	'ID' => $articleID
+	);
 	$j = 0;
-		$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
-		$articleD = $pdo->query($sql);
-		while ($row = $articleD->fetch()) {
-			$tagName = htmlspecialchars($row['name']); 
-			$subTagID = htmlspecialchars($row['ID']);
-			$tagQuant = htmlspecialchars($row['quant']);
-			$Pname = htmlspecialchars($row['Pname']);
-			$owner = htmlspecialchars($row['owner']);
-			$tagA = array(
-			'name' => $tagName,
-			'ID' => $subTagID,
-			'quant' => $tagQuant,
-			'Pname' => $Pname,
-			'owner' => $owner
-			);
-			$table[$h]["tag"][$j] = $tagA;
-			$j++;
+	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
+
+	$articleD = $pdo->query($sql);
+	while ($row = $articleD->fetch()) {
+		$tagName = htmlspecialchars($row['name']); 
+		$subTagID = htmlspecialchars($row['ID']);
+		$tagQuant = htmlspecialchars($row['quant']);
+		$Pname = htmlspecialchars($row['Pname']);
+		$owner = htmlspecialchars($row['owner']);
+		$tagA = array(
+		'name' => $tagName,
+		'ID' => $subTagID,
+		'quant' => $tagQuant,
+		'Pname' => $Pname,
+		'owner' => $owner
+		);
+		$table[$h]["tag"][$j] = $tagA;
+		$j++;
+		if ($taghash[$subTagID] == null) {
+			$taghash[$subTagID] = array( $k++, $tagName, $subTagID, $Pname);
 		}
-		$table[$h]["article"]= $article;
-		$h++;
 	}
+	$table[$h]["article"]= $article;
+	$h++;
+}
+echo "タグハッシュ";
+print_r ($taghash);
+
 ?>
 <p>
 <form action='result.php' method='post'>
@@ -153,7 +168,9 @@ echo '<input type="radio" name="searchType" value="0" "> AND
 </p>
 
 <table border="1" class="tablesorter">
+
 <?php
+
 foreach ($searchingTagA as $searchingTag) {
 echo "<tr><form action='result.php' method='post'>";
 	echo"<td><a href='result.php?tagID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a><input name='SearchType' value='$SearchType'type='hidden' />
@@ -165,9 +182,24 @@ echo "</form>";
 </tr>
 </table>
 <table border="1">
+<tr>
+<th><br></th>
+<th><br></th>
 <?php
+
+foreach ($taghash as $key => $tagValue){
+
+echo "<th>";
+echo $tagValue[1];
+echo "<br>オーナー";
+echo $tagValue[3];
+echo "</th>";
+}
+echo "</tr>";
+
 foreach ($table as $articleA){
-	echo "<tr><form action='result.php' method='post'><td><a href='result.php?ID=";
+	echo "<tr>";
+	echo "<form action='result.php' method='post'><td><a href='result.php?ID=";
 	echo $articleA["article"][ID];
 	echo "' target='_blank'>";
 	echo $articleA["article"][name];
@@ -185,24 +217,37 @@ foreach ($table as $articleA){
 		$k++;
 	}
 	echo "</td></form>";
-
-	foreach ($articleA["tag"] as $tagA){
-	echo "<td>";
-	//print_r ($tagA[ID]);
-	if (false == in_array($tagA[ID],$tagIDList)) {
-		echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$currentSearchingTag'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /></form>";
-	}
-		echo "<form action='result.php' method='post'>オーナー<br>$tagA[Pname]<a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a><br><input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form></td>";
-	}
-	echo "<form action='resist.php' method='post'><td><div id='viewMainTag' onClick='addEachTag();' ><input value='タグ関連付け' type='submit' name=`addTag'></div>
-			<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></div><input name='searchType' value='$searchType'type='hidden' /><input name='target' value='$articleA["article"][ID]'type='hidden' />";
+	echo "<form action='tagresist.php' method='post'><td><div id='viewMainTag' onClick='addEachTag();' ><input value='タグ関連付け' type='submit' name=`addTag'></div>
+			<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /><input name='targetIDFrom' value='$tagA[ID]'type='hidden' /></div><input name='searchType' value='$searchType'type='hidden' /><input name='targetIDTo' value='";
 	echo $articleA["article"][ID];
-	echo "</td></form></tr>";
+	echo "'type='hidden' />";
+	echo $articleA["article"][ID];
+	echo "</td></form>";
+	foreach ($taghash as $key => $tagValue){
+	echo "<td>";
+		foreach ($articleA["tag"] as $tagA){
+			if ($key == $tagA[ID]){
+				echo "<form action='result.php' method='post'><br><input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form>";
+				if (false == in_array($tagA[ID],$tagIDList)) {
+					echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$currentSearchingTag'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /></form>";
+				}
+				echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
+				echo "<input name='targetDelIDTo' value='";
+				echo $articleA["article"][ID];
+				echo "'type='hidden' />";
+				echo "<input name='targetDelIDFrom' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$currentSearchingTag'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a></form>";
+			} else {
+			}
+		}
+	echo "</td>";
+	} 
+	echo "</tr>"; 
 
 }
 
 ?>
 </table>
+</body>
 </html>
 
 

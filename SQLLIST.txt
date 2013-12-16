@@ -23,6 +23,8 @@ SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM
 SELECT `Tag`.* ,`User_TBL`.* FROM 
  `User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU'
 
+//É^ÉOéÊìæÇÃéûÇ…
+SELECT `Tag`.* ,`User_TBL`.* , `userP`.* FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU' AND `userP`.`ID` = `User_TBL` . `profileID`
 
-SELECT `Tag`.* ,`User_TBL`.* FROM 
- `User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU'
+
+SELECT `Tag`.*  , `userP`.`name` FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU' AND `userP`.`ID` = `User_TBL` . `profileID`

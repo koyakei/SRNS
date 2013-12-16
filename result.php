@@ -1,10 +1,11 @@
 <html>
 <head>
 <link rel="stylesheet" type="text/css" href="css/tablesorter.css" />
-
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<script type="text/javascript" src="js/jquery-2.0.3.js"></script>
-<script type="text/javascript">
+<script src="js/sorttable.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/dragtable.js"></script>
 <!--
 
 function editMainTag() {
@@ -16,22 +17,7 @@ function changeMainTag() {
 function submitMainTag() {
   alert('called submitMainTag');
 }
-//-->
-</script>
-
-<!--ダウンロードしたファイル-->
-<script type="text/javascript" src="js/jquery-latest.js"></script> 
-<script type="text/javascript" src="js/jquery.tablesorter.js"></script> 
-<script type="text/javascript" src="js/addons/pager/jquery.tablesorter.pager.js"></script> 
-<script type="text/javascript" src="js/docs/js/docs.js"></script> 
-<!--javascript追記-->
-<script type="text/javascript">
-	$(function() {
-		$("table")
-			.tablesorter({widthFixed: true, widgets: ['zebra']})
-			.tablesorterPager({container: $("#pager")});
-	});
-</script>
+-->
 <title>Top</title>
 </head>
 <body>
@@ -167,7 +153,7 @@ echo '<input type="radio" name="searchType" value="0" "> AND
 
 </p>
 
-<table border="1" class="tablesorter">
+<table border="1">
 
 <?php
 
@@ -181,10 +167,11 @@ echo "</form>";
 ?>
 </tr>
 </table>
-<table border="1">
+<table class="sortable">
+<thead>
 <tr>
-<th><br></th>
-<th><br></th>
+<th></th>
+<th></th>
 <?php
 
 foreach ($taghash as $key => $tagValue){
@@ -195,7 +182,7 @@ echo "<br>オーナー";
 echo $tagValue[3];
 echo "</th>";
 }
-echo "</tr>";
+echo "</tr></thead><tbody>";
 
 foreach ($table as $articleA){
 	echo "<tr>";
@@ -246,6 +233,20 @@ foreach ($table as $articleA){
 }
 
 ?>
+</tbody>
+</table>
+<table class="sortable">
+<?php
+echo "<thead>";
+?>
+  <tr><th>Person</th><th>Monthly pay</th><th class="sorttable_nosort">NoSort</th></tr>
+</thead>
+<tbody>
+  <tr><td sorttable_customkey="1">Jan Molby</td><td>￡12,000</td><td>No.1</td></tr>
+  <tr><td>Steve Nicol</td><td>￡8,500</td><td>N/A</td></tr>
+  <tr><td>Steve McMahon</td><td>￡9,200</td><td>N/A</td></tr>
+  <tr><td>John Barnes</td><td>￡15,300</td><td>N/A</td></tr>
+</tbody>
 </table>
 </body>
 </html>

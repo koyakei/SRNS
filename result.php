@@ -164,17 +164,7 @@ echo "</form>";
 ?>
 </tr>
 </table>
-<table class="sortable draggable">
-<thead>
-  <tr><th>Person</th><th>Monthly pay</th><th>Sort</th></tr>
-</thead>
-<tbody>
-  <tr><td sorttable_customkey="1">Jan Molby</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='12000'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='1'></td></tr>
-  <tr><td>Steve Nicol</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='5'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='6'></td></tr>
-  <tr><td>Steve McMahon</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='200'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='3'></td></tr>
-  <tr><td>John Barnes</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='15300'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='4'></td></tr>
-</tbody>
-</table>
+
 <table class="sortable draggable" border="1">
 <thead>
 <tr>

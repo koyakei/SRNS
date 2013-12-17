@@ -21,7 +21,6 @@ function submitMainTag() {
 <title>Top</title>
 </head>
 <body>
-<br>
 
 <?php
 ini_set( 'display_errors', 1 );
@@ -151,8 +150,6 @@ echo '<input type="radio" name="searchType" value="0" "> AND
 <input type="submit" value="変更">
 </form>
 
-</p>
-
 <table border="1">
 
 <?php
@@ -167,7 +164,18 @@ echo "</form>";
 ?>
 </tr>
 </table>
-<table class="sortable">
+<table class="sortable draggable">
+<thead>
+  <tr><th>Person</th><th>Monthly pay</th><th>Sort</th></tr>
+</thead>
+<tbody>
+  <tr><td sorttable_customkey="1">Jan Molby</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='12000'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='1'></td></tr>
+  <tr><td>Steve Nicol</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='5'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='6'></td></tr>
+  <tr><td>Steve McMahon</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='200'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='3'></td></tr>
+  <tr><td>John Barnes</td><form action='result.php' method='post'><td><input type='number' name='tagWeight' min='0' max='100000' value='15300'></td></form><td><input type='number' name='tagWeight' min='0' max='100000' value='4'></td></tr>
+</tbody>
+</table>
+<table class="sortable draggable" border="1">
 <thead>
 <tr>
 <th></th>
@@ -178,23 +186,29 @@ foreach ($taghash as $key => $tagValue){
 
 echo "<th>";
 echo $tagValue[1];
-echo "<br>オーナー";
+echo "<br>owner";
 echo $tagValue[3];
 echo "</th>";
+echo "<th>";
+echo "</th>";
 }
-echo "</tr></thead><tbody>";
-
+?>
+</tr></thead><tbody>
+<?php
 foreach ($table as $articleA){
 	echo "<tr>";
-	echo "<form action='result.php' method='post'><td><a href='result.php?ID=";
+	echo "<td><form action='result.php' method='post'>";
+
+	echo "<a href='result.php?ID=";
 	echo $articleA["article"][ID];
 	echo "' target='_blank'>";
 	echo $articleA["article"][name];
-	echo "</a>
-			<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>
-			<div id='editMainTag'><input name='articleEdit' value='";
+	echo "</a>";
+	echo "<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>";
+			echo "<div id='editMainTag'><input name='articleEdit' value='";
 	echo $articleA["article"][name];
-	echo "' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='articleID' value='";
+	echo "' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div>";
+	echo "<input name='articleID' value='";
 	echo $articleA["article"][ID];
 	echo "' type='hidden' />";
 	$k = 0;
@@ -203,28 +217,33 @@ foreach ($table as $articleA){
 		$currentSearchingTag = $searchingTag[ID];
 		$k++;
 	}
-	echo "</td></form>";
-	echo "<form action='tagresist.php' method='post'><td><div id='viewMainTag' onClick='addEachTag();' ><input value='タグ関連付け' type='submit' name=`addTag'></div>
-			<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /><input name='targetIDFrom' value='$tagA[ID]'type='hidden' /></div><input name='searchType' value='$searchType'type='hidden' /><input name='targetIDTo' value='";
+	echo "</form>";
+
+	echo "</td>";
+	echo "<td><form action='tagresist.php' method='post'>";
+
+	echo "<input value='タグ関連付け' type='submit' name=`addTag'>";
+	echo "<div id='addTag'><input name='tagAdd' style='visible: hidden;' onChange='addEachTag();' onSubmit='submitAddTag(); return true;' /><input name='targetIDFrom' value='$tagA[ID]'type='hidden' /></div>";
+	echo "<input name='searchType' value='$searchType'type='hidden' /><input name='targetIDTo' value='";
 	echo $articleA["article"][ID];
 	echo "'type='hidden' />";
-	echo $articleA["article"][ID];
-	echo "</td></form>";
+
+	echo "</form></td>";
+	
 	foreach ($taghash as $key => $tagValue){
 	echo "<td>";
 		foreach ($articleA["tag"] as $tagA){
 			if ($key == $tagA[ID]){
-				echo "<form action='result.php' method='post'><br><input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form>";
+				echo "$tagA[quant]</td><td>";
 				if (false == in_array($tagA[ID],$tagIDList)) {
 					echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$currentSearchingTag'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /></form>";
 				}
-				echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
+				echo "<form action='result.php' method='post'><br><input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form><form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
 				echo "<input name='targetDelIDTo' value='";
 				echo $articleA["article"][ID];
 				echo "'type='hidden' />";
 				echo "<input name='targetDelIDFrom' value='$tagA[ID]'type='hidden' /><input name='tagIDList[]' value='$currentSearchingTag'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a></form>";
-			} else {
-			}
+				} 
 		}
 	echo "</td>";
 	} 
@@ -235,19 +254,7 @@ foreach ($table as $articleA){
 ?>
 </tbody>
 </table>
-<table class="sortable">
-<?php
-echo "<thead>";
-?>
-  <tr><th>Person</th><th>Monthly pay</th><th class="sorttable_nosort">NoSort</th></tr>
-</thead>
-<tbody>
-  <tr><td sorttable_customkey="1">Jan Molby</td><td>￡12,000</td><td>No.1</td></tr>
-  <tr><td>Steve Nicol</td><td>￡8,500</td><td>N/A</td></tr>
-  <tr><td>Steve McMahon</td><td>￡9,200</td><td>N/A</td></tr>
-  <tr><td>John Barnes</td><td>￡15,300</td><td>N/A</td></tr>
-</tbody>
-</table>
+
 </body>
 </html>
 

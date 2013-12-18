@@ -24,7 +24,8 @@ SELECT `Tag`.* ,`User_TBL`.* FROM
  `User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU'
 
 //É^ÉOéÊìæÇÃéûÇ…
-SELECT `Tag`.* ,`User_TBL`.* , `userP`.* FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU' AND `userP`.`ID` = `User_TBL` . `profileID`
-
 
 SELECT `Tag`.*  , `userP`.`name` FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  'ê∂äU' AND `userP`.`ID` = `User_TBL` . `profileID`
+
+https://docs.google.com/drawings/d/18Vu7KOnu1wDFAEFFqch-SOyLFzAHSzF4pxcMoz51pkM/edit?usp=sharing
+SELECT `LINC` . `LTo` FROM `LINK` ,`LINK` AS `Parent_link` 

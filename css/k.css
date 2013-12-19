@@ -1,0 +1,21 @@
+﻿.comment_2{
+	position: relative;
+}
+.comment_2:hover{
+	background: #DCEFFF;
+}
+.recomment_2{
+	visibility: hidden;
+	position: absolute;
+	white-space: nowrap;
+	top: 2px;
+	right: 5px;
+	padding: 2px;
+	text-align: right;
+}
+.recomment_wrap_2{
+	text-align: right
+	display: none;
+	margin: 0;
+	padding: 0;
+}

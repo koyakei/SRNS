@@ -71,7 +71,7 @@ if ( $articleID != null and $replyName != null) {
 	NULL ,  '$replyName', '1', NOW( )
 	);";
 	$pdo->exec($sql); 
-	$lastAIID = $pdo->lastInsertId('ID');
+	$LINK1stID = $pdo->lastInsertId('ID');
 	$pdo->commit();
 	$pdo->beginTransaction();//元記事と返信記事のリンクを作成
 	$sql = "INSERT INTO  `db0tagplus`.`LINK` (
@@ -83,7 +83,7 @@ if ( $articleID != null and $replyName != null) {
 	`Created_time`
 	)
 	VALUES (
-	NULL ,  '$articleID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+	NULL ,  '$articleID',  '$LINK1stID',  '1',  '$ownerID', NOW( )
 	);";
 	$pdo->exec($sql); 
 	$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
@@ -146,7 +146,6 @@ if ($searchType == 1) {//記事取得
 $articleSelect = $pdo->query($sql);
 $k = 0;
 while ($row = $articleSelect->fetch()) {
-	
 	$articleName = htmlspecialchars($row['name']);
 	$articleID = htmlspecialchars($row['ID']);
 	$article = array(
@@ -155,13 +154,17 @@ while ($row = $articleSelect->fetch()) {
 	);
 	//リプライ取得
 	$o = 0;
-	$sql = "SELECT `article`.`ID`, `article`.`name` FROM `LINK` INNER JOIN `article` ON `LINK` . `LTo` = `article` . `ID` WHERE  `LINK`.`LFrom` =$articleID";
-	$articleD = $pdo->query($sql);
-	while ($row = $articleD->fetch()) {
+	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =2138  AND `article` . `ID` = `LINK` . `LTo`";
+	$ReplySQL = $pdo->query($sql);
+	while ($row = $ReplySQL->fetch()) {
 		$replyName = htmlspecialchars($row['name']); 
 		$replyID = htmlspecialchars($row['ID']);
+		$ownerID = htmlspecialchars($row['owner']);
+		$CreatedTime = htmlspecialchars($row['Created_time']);
 		$replyA = array(
 		'name' => $replyName,
+		'owner' => $ownerID,
+		'CreatedTime' => $CreatedTime,
 		'ID' => $replyID
 		);
 		$table[$h]["reply"][$o] = $replyA;
@@ -286,10 +289,7 @@ foreach ($table as $articleA){
 	echo "<input name='replyID' value='";
 	echo $articleA["article"][ID];
 	echo "' type='hidden' /></form>";
-	echo "<div onClick='toggleShow(this);'>";
-	echo "返信をすべて開く";
-	echo "</div>";
-	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
+
 		echo "<form action='result.php' method='post'>";//返信フォーム開始
 		echo "<input value='記事への返信' type='submit' name='articleReply'>";//ボタン
 		echo "<input value='";
@@ -302,6 +302,11 @@ foreach ($table as $articleA){
 		echo $articleA["article"][ID];
 		echo "' type='hidden' />";//記事ID取得
 		echo "</form>";//返信フォーム終了
+	echo "<div onClick='toggleShow(this);'>";
+	echo "返信をすべて開く";
+	echo "</div>";
+	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
+	
 		//返信表示
 		echo "<form action='result.php' method='post'>";//返信削除フォーム開始
 		echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン

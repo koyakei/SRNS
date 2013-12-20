@@ -33,8 +33,7 @@ ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
 require_once("cmn/utils.php");
 $pdo = db_open();
-$replyID = $_REQUEST['replyID'];
-$replyName = $_REQUEST['replyName'];
+$replyName = $_REQUEST['articleReply'];
 $ownerID = 1;//今は管理者にしている
 $replyTagID = 2138;//返信ID　tag;reply
 if ($_REQUEST['tagIDList'] != null) {
@@ -57,8 +56,10 @@ $whereLinkOR = "(`LINK`.`LFrom` =" . join(" OR `LINK`.`LFrom` =", $tagIDList).")
 $whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
-$articleEdit = htmlspecialchars($_POST['articleEdit']);
-if ( $replyID != null and $replyName != null) {
+$articleEdit = htmlspecialchars($_POST['articleEdit']);/*
+print_r ($articleID);
+print_r ($replyName);*/
+if ( $articleID != null and $replyName != null) {
 	$pdo->beginTransaction();//記事を追加する
 	$sql = "INSERT INTO  `db0tagplus`.`article` (
 	`ID` ,
@@ -71,6 +72,7 @@ if ( $replyID != null and $replyName != null) {
 	);";
 	$pdo->exec($sql); 
 	$lastAIID = $pdo->lastInsertId('ID');
+	$pdo->commit();
 	$pdo->beginTransaction();//元記事と返信記事のリンクを作成
 	$sql = "INSERT INTO  `db0tagplus`.`LINK` (
 	`ID` ,
@@ -81,7 +83,7 @@ if ( $replyID != null and $replyName != null) {
 	`Created_time`
 	)
 	VALUES (
-	NULL ,  '$replyID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+	NULL ,  '$articleID',  '$lastAIID',  '1',  '$ownerID', NOW( )
 	);";
 	$pdo->exec($sql); 
 	$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
@@ -121,7 +123,7 @@ if ($tagEdit != null) {
 }
 $tagG = $pdo->query($sql);
 $i = 0;
-while ($row = $tagG->fetch()) {
+while ($row = $tagG->fetch()) {//タグIDを取得
 	$name = htmlspecialchars($row['name']);
 	$ID = htmlspecialchars($row['ID']);
 	$searchingTag = array(
@@ -135,7 +137,7 @@ while ($row = $tagG->fetch()) {
 <?php
 $table = array();
 
-if ($searchType == 1) {
+if ($searchType == 1) {//記事取得
 //OR検索
 	$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
 } else{
@@ -144,7 +146,7 @@ if ($searchType == 1) {
 $articleSelect = $pdo->query($sql);
 $k = 0;
 while ($row = $articleSelect->fetch()) {
-	$o = 0;
+	
 	$articleName = htmlspecialchars($row['name']);
 	$articleID = htmlspecialchars($row['ID']);
 	$article = array(
@@ -152,7 +154,8 @@ while ($row = $articleSelect->fetch()) {
 	'ID' => $articleID
 	);
 	//リプライ取得
-	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
+	$o = 0;
+	$sql = "SELECT `article`.`ID`, `article`.`name` FROM `LINK` INNER JOIN `article` ON `LINK` . `LTo` = `article` . `ID` WHERE  `LINK`.`LFrom` =$articleID";
 	$articleD = $pdo->query($sql);
 	while ($row = $articleD->fetch()) {
 		$replyName = htmlspecialchars($row['name']); 
@@ -277,9 +280,6 @@ foreach ($table as $articleA){
 	}
 	echo "</form>";
 	echo "<form action='result.php' method='post'>";
-	echo "<input value='返信' value='";
-	echo $Reply[name]; 
-	echo "'/>";
 	foreach ($searchingTagA as $searchingTag) {
 		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 	}
@@ -287,13 +287,35 @@ foreach ($table as $articleA){
 	echo $articleA["article"][ID];
 	echo "' type='hidden' /></form>";
 	echo "<div onClick='toggleShow(this);'>";
-	echo "Reply";
+	echo "返信をすべて開く";
 	echo "</div>";
-	echo "<div id='HSfield' style='display: none;'>";
-		echo "<form action='result.php' method='post'><input value='記事への返信' type='submit' name='articleReply'>";
-		echo "<div id='editMainTag'><input name='articleAdd' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div></form>";//返信フォーム終了
-	echo "</div>";
-	foreach ($articleA["reply"] as  $Reply) {
+	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
+		echo "<form action='result.php' method='post'>";//返信フォーム開始
+		echo "<input value='記事への返信' type='submit' name='articleReply'>";//ボタン
+		echo "<input value='";
+		echo $articleA[reply][name];
+		echo "' name='articleReply'/>";
+		foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+			echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+		}
+		echo "<input name='articleID' value='";
+		echo $articleA["article"][ID];
+		echo "' type='hidden' />";//記事ID取得
+		echo "</form>";//返信フォーム終了
+		//返信表示
+		echo "<form action='result.php' method='post'>";//返信削除フォーム開始
+		echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
+		foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+			echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+		}
+		echo "<input name='reblyIDDel' value='";
+		echo $articleA["reply"][ID];
+		echo "' type='hidden' />";//返信記事ID取得
+		echo "<input name='articleID' value='";
+		echo $articleA["article"][ID];
+		echo "' type='hidden' />";//記事ID取得
+		echo "</form>";//返信フォーム終了
+		foreach ($articleA["reply"] as  $Reply) {
 //返事表示
 		
 		echo "<div id='HSfield' style='display;none;'>";
@@ -302,11 +324,13 @@ foreach ($table as $articleA){
 			echo "Edit Reply返事を書き直す";
 			echo "</div>";
 			
-			echo "<div id='HSfield' style='display;none;'>";
+			echo "<div id='HSfield' style='display;none;'>";//返事の編集開始
 			echo "<input value='ReRe' type='submit' name='articleReReply'>";
-			echo "<input name='articleAdd' style=display;none;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></form>";
+			echo "<input name='articleAdd' style=display;none;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' />";
+			echo "</div></form>";//返事の編集終了
 		}
-		echo "</div>";
+		
+	echo "</div>";//返信展開終了
 	}
 	echo "</td>";
 	echo "<td><form action='tagresist.php' method='post'>";

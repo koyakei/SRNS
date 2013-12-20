@@ -8,46 +8,20 @@
 <script type="text/javascript" src="js/dragtable.js"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script type="text/javascript">
-$("div.comment_2").each(function(i){
-//コメントループ
-    $("div.comment_2").each(function(i){
-        //マウスがdiv.comment_2に移動したとき
-        $("div.comment_2").eq(i).hover(function(){
-            //[返信]の表示
-            $("div.recomment_2",this).css("visibility", "visible");
-        //マウスがdiv.commentに移動したとき以外
-        },function(){
-            //[返信]の非表示
-            $("div.recomment_2",this).css("visibility", "hidden");
-        })
-      //コメント欄[返信]クリック
-      $("div.recomment_2 span").eq(i).click(function(){
-          $("div.recomment_wrap_2").eq(i).css("display", "block");
-          return false;
-      }).css("cursor","pointer");
-        //コメント欄[キャンセル]クリック
-        $(".recomment_wrap_2 a").eq(i).click(function(){
-            $(".recomment_wrap_2").eq(i).css("display", "none");
-            return false;
-         });
-    });
-function editMainTag() {
-  document.getElementById("editMainTag").style.visibility = "true";
-}
-function changeMainTag() {
-  alert('called changeMainTag');
-}
-function submitMainTag() {
-  alert('called submitMainTag');
-}
-function toggleShow(obj) {
 
-    if (element.style.visibility == 'hidden') {
-      element.style.visibility = 'visible';
-    } else {
-      element.style.visibility = 'hidden';
+function toggleShow(obj) {
+ var ch = obj.parentNode.children;
+ for (var i = 0, len = ch.length; i < len; i++) {
+    if (ch[i].getAttribute("id") == "HSfield") {
+      var element = ch[i];
+         if (element.style.display == 'none') {
+           element.style.display='block';
+         } else {
+           element.style.display='none';
+         }
+       }
     }
-  }
+ }
 </script>
 
 <title>Top</title>
@@ -58,7 +32,11 @@ function toggleShow(obj) {
 ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
 require_once("cmn/utils.php");
-  $pdo = db_open();
+$pdo = db_open();
+$replyID = $_REQUEST['replyID'];
+$replyName = $_REQUEST['replyName'];
+$ownerID = 1;//今は管理者にしている
+$replyTagID = 2138;//返信ID　tag;reply
 if ($_REQUEST['tagIDList'] != null) {
 $tagIDList = $_REQUEST['tagIDList'];
 
@@ -80,6 +58,49 @@ $whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
 $articleEdit = htmlspecialchars($_POST['articleEdit']);
+if ( $replyID != null and $replyName != null) {
+	$pdo->beginTransaction();//記事を追加する
+	$sql = "INSERT INTO  `db0tagplus`.`article` (
+	`ID` ,
+	`name` ,
+	`owner` ,
+	`Created_time`
+	)
+	VALUES (
+	NULL ,  '$replyName', '1', NOW( )
+	);";
+	$pdo->exec($sql); 
+	$lastAIID = $pdo->lastInsertId('ID');
+	$pdo->beginTransaction();//元記事と返信記事のリンクを作成
+	$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+	`ID` ,
+	`LFrom` ,
+	`LTo` ,
+	`quant` ,
+	`owner`,
+	`Created_time`
+	)
+	VALUES (
+	NULL ,  '$replyID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+	);";
+	$pdo->exec($sql); 
+	$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
+	$pdo->commit();
+	$pdo->beginTransaction();//元記事-返信リンクと返信タグリンクを作成
+	$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+	`ID` ,
+	`LFrom` ,
+	`LTo` ,
+	`quant` ,
+	`owner`,
+	`Created_time`
+	)
+	VALUES (
+	NULL ,  '$replyTagID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+	);";
+	$pdo->exec($sql); 
+	$pdo->commit();
+}
 if ($targetDelIDFrom != null) {
 $pdo->beginTransaction();
  $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $targetDelIDFrom AND `LINK`.`LTo` = $targetDelIDTo;";
@@ -91,12 +112,12 @@ $pdo->beginTransaction();
 $pdo->exec($sql); $pdo->commit();
 };
 if ($tagEdit != null) {
-$pdo->beginTransaction();
- $sql = "UPDATE `db0tagplus`.`Tag` SET `name` = '$tagEdit' WHERE `Tag`.`ID` = $tagID;";
-$pdo->exec($sql); $pdo->commit();
-  $sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";
+	$pdo->beginTransaction();
+	 $sql = "UPDATE `db0tagplus`.`Tag` SET `name` = '$tagEdit' WHERE `Tag`.`ID` = $tagID;";
+	$pdo->exec($sql); $pdo->commit();
+	  $sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";
 } else {
-  $sql = "SELECT * FROM `Tag` WHERE $whereOR";
+  	$sql = "SELECT * FROM `Tag` WHERE $whereOR";
 }
 $tagG = $pdo->query($sql);
 $i = 0;
@@ -110,8 +131,6 @@ while ($row = $tagG->fetch()) {
 	$searchingTagA[$i] = $searchingTag;
 	$i++;
 }
-echo "serrchingtag";
-print_r ($searchingTagA);
 ?>
 <?php
 $table = array();
@@ -148,7 +167,6 @@ while ($row = $articleSelect->fetch()) {
 	//リプライ取得終了
 	$j = 0;
 	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
-
 	$articleD = $pdo->query($sql);
 	while ($row = $articleD->fetch()) {
 		$tagName = htmlspecialchars($row['name']); 
@@ -173,49 +191,13 @@ while ($row = $articleSelect->fetch()) {
 	$h++;
 }
 ?>
-<div class="comment_2">
-	<div class="comment_name_2">
-		<p>■■さんのコメント</p>
-	</div>
-	<div class="comment_msg_2">
-		<p>今日は良い天気ですね！</p>
-	</div>
-	<div class="recomment_2">
-		<span>返信</sapn>
-	</div>
-	<div class="recomment_wrap_2">
-             <div class="clearfix">
-                <input type="text" name="sample" class="sampleinput">
-              </div>
-		<a href="#" onclick="return false">キャンセル</a>
-	</div>
-</div>
-<div class="comment_2">
-	<div class="comment_name_2">
-		<p>●●さんのコメント</p>
-	</div>
-	<div class="comment_msg_2">
-		<p>今日は良い天気ですね！</p>
-	</div>
-	<div class="recomment_2">
-		<span>返信</sapn>
-	</div>
-	<div class="recomment_wrap_2">
-               <div class="clearfix">
-                  <input type="text" name="sample" class="sampleinput">
-               </div>
-		<a href="#" onclick="return false">キャンセル</a>
-	</div>
-</div>
-
-
 <form action='result.php' method='post'>
 <?php
 if ($searchType == 0) {
 echo '<input type="radio" name="searchType" value="0" checked> AND
-<input type="radio" name="searchType" value="1""> OR';
+<input type="radio" name="searchType" value="1"> OR';
 } else {
-echo '<input type="radio" name="searchType" value="0" "> AND
+echo '<input type="radio" name="searchType" value="0"> AND
 <input type="radio" name="searchType" value="1" checked> OR';
 }
 	$allRequest = $_REQUEST;
@@ -248,26 +230,22 @@ echo "</form>";
 <th class="sorttable_nosort">
 <?php
 foreach ($searchingTagA as $searchingTag) {
-		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-	}
+	echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+}
 ?>
-<div onClick="toggleShow(obj);">
+<div onClick="toggleShow(this);">
 記事追加
 </div>
-<div id="HSfield" style="visibility:hidden;">
+<div id="HSfield" style="display: none;">
 <?php
 	echo "<form action='result.php' method='post'><input value='記事追加' type='submit' name='addArticle'>";
 	echo "<div id='editMainTag'><input name='articleAdd' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div></form>";
 ?>
 </div>
-
-
 </th>
 <th></th>
 <?php
-
 foreach ($taghash as $key => $tagValue){
-
 echo "<th>";
 echo $tagValue[1];
 echo "<br>owner";
@@ -280,8 +258,8 @@ echo "</th>";
 </tr></thead><tbody>
 <?php
 foreach ($table as $articleA){
-	echo "<tr><td>";
-	echo "<form action='result.php' method='post'>";
+	echo "<tr>";
+	echo "<td><form action='result.php' method='post'>";
 	echo "<a href='articleDetale.php?ID=";
 	echo $articleA["article"][ID];
 	echo "' target='_blank'>";
@@ -290,7 +268,7 @@ foreach ($table as $articleA){
 	echo "<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>";
 	echo "<div id='editMainTag'><input name='articleEdit' value='";
 	echo $articleA["article"][name];
-	echo "' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div>";
+	echo "' style='visible' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div>";
 	echo "<input name='articleID' value='";
 	echo $articleA["article"][ID];
 	echo "' type='hidden' />";
@@ -298,27 +276,35 @@ foreach ($table as $articleA){
 		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 	}
 	echo "</form>";
-	
-	echo "<div onClick='toggleShow(obj);'>";
+	echo "<form action='result.php' method='post'>";
+	echo "<input value='返信' value='";
+	echo $Reply[name]; 
+	echo "'/>";
+	foreach ($searchingTagA as $searchingTag) {
+		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+	}
+	echo "<input name='replyID' value='";
+	echo $articleA["article"][ID];
+	echo "' type='hidden' /></form>";
+	echo "<div onClick='toggleShow(this);'>";
 	echo "Reply";
 	echo "</div>";
-	echo "<div id='HSfield' style='visibility:hidden;'>";
+	echo "<div id='HSfield' style='display: none;'>";
 		echo "<form action='result.php' method='post'><input value='記事への返信' type='submit' name='articleReply'>";
 		echo "<div id='editMainTag'><input name='articleAdd' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div></form>";//返信フォーム終了
 	echo "</div>";
 	foreach ($articleA["reply"] as  $Reply) {
 //返事表示
-		echo "<input value='articleReply' value='";
-		echo $Reply[name]; 
-		echo "'/><input name='replyID' value='$Reply[ID]'type='hidden' />";
-		echo "<div onClick='toggleShow();'>"; //返事を書き直す
-		echo "Edit Reply";
-		echo "</div>";
-		echo "<div id='HSfield' style='visibility:hidden;'>";
+		
+		echo "<div id='HSfield' style='display;none;'>";
 		foreach ($articleA["reply"] as  $ReReply) {
-			echo "<div id='HSfield' style='visibility:hidden;'>";
-			echo "<form action='result.php' method='post'><input value='返信' type='submit' name='articleReply'>";
-			echo "<div id='editMainTag'><input name='articleAdd' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div></form>";
+			echo "<form action='result.php' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
+			echo "Edit Reply返事を書き直す";
+			echo "</div>";
+			
+			echo "<div id='HSfield' style='display;none;'>";
+			echo "<input value='ReRe' type='submit' name='articleReReply'>";
+			echo "<input name='articleAdd' style=display;none;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></form>";
 		}
 		echo "</div>";
 	}
@@ -335,7 +321,8 @@ foreach ($table as $articleA){
 		echo "<td>";
 		foreach ($articleA["tag"] as $tagA){
 			if ($key == $tagA[ID]){
-				echo "$tagA[quant]</td><td>";
+				echo "$tagA[quant]</td>";
+				echo "<td>";
 				if (false == in_array($tagA[ID],$tagIDList)) {
 					echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' />";
 					foreach ($searchingTagA as $searchingTag) {
@@ -351,22 +338,20 @@ foreach ($table as $articleA){
 				echo $articleA["article"][ID];
 				echo "'type='hidden' />";
 				foreach ($searchingTagA as $searchingTag) {
-						echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+					echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 				}
 				echo "<input name='targetDelIDFrom' value='$tagA[ID]'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a>";
 				echo "</form>"; 
 			}
-
 		}
-	echo "</td>"; 
+		echo "</td>"; 
 	}
-echo "</tr>"; 
-}
+	echo "</tr>";
+} 
 
 ?>
 </tbody>
 </table>
-
 </body>
 </html>
 

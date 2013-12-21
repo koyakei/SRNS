@@ -32,6 +32,7 @@ function toggleShow(obj) {
 ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
 require_once("cmn/utils.php");
+require_once("cmn/functions.php");
 $pdo = db_open();
 $replyName = $_REQUEST['articleReply'];
 $ownerID = 1;//今は管理者にしている
@@ -215,7 +216,6 @@ echo '<input type="radio" name="searchType" value="0"> AND
 ?>
 <input type="submit" value="変更">
 </form>
-
 <table border="1">
 
 <?php
@@ -271,6 +271,10 @@ foreach ($table as $articleA){
 	echo "' target='_blank'>";
 	echo $articleA["article"][name];
 	echo "</a>";
+	echo "<div onClick='toggleShow(this);'>";
+	echo "編集";
+	echo "</div>";
+	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
 	echo "<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>";
 	echo "<div id='editMainTag'><input name='articleEdit' value='";
 	echo $articleA["article"][name];
@@ -282,6 +286,7 @@ foreach ($table as $articleA){
 		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 	}
 	echo "</form>";
+
 	echo "<form action='result.php' method='post'>";
 	foreach ($searchingTagA as $searchingTag) {
 		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
@@ -289,53 +294,45 @@ foreach ($table as $articleA){
 	echo "<input name='replyID' value='";
 	echo $articleA["article"][ID];
 	echo "' type='hidden' /></form>";
-
-		echo "<form action='result.php' method='post'>";//返信フォーム開始
-		echo "<input value='記事への返信' type='submit' name='articleReply'>";//ボタン
-		echo "<input value='";
-		echo $articleA[reply][name];
-		echo "' name='articleReply'/>";
-		foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
-			echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-		}
-		echo "<input name='articleID' value='";
-		echo $articleA["article"][ID];
-		echo "' type='hidden' />";//記事ID取得
-		echo "</form>";//返信フォーム終了
-	echo "<div onClick='toggleShow(this);'>";
-	echo "返信をすべて開く";
 	echo "</div>";
-	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
-	
-		//返信表示
-		echo "<form action='result.php' method='post'>";//返信削除フォーム開始
-		echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
-		foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
-			echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-		}
-		echo "<input name='reblyIDDel' value='";
-		echo $articleA["reply"][ID];
-		echo "' type='hidden' />";//返信記事ID取得
-		echo "<input name='articleID' value='";
-		echo $articleA["article"][ID];
-		echo "' type='hidden' />";//記事ID取得
-		echo "</form>";//返信フォーム終了
-		foreach ($articleA["reply"] as  $Reply) {
-//返事表示
-		
+	if ($articleA["reply"] != null) {
+		echo "<div onClick='toggleShow(this);'>";
+		echo "返信をすべて開く";
+		echo "</div>";
 		echo "<div id='HSfield' style='display;none;'>";
-		foreach ($articleA["reply"] as  $ReReply) {
+		foreach ($articleA["reply"] as  $Reply) {
+			if (is_url($Reply[name]) == TRUE) {//返信表示
+				echo "<a href='";
+				echo $Reply[name];
+				echo "' target='_blank'>";
+				echo $Reply[name];
+				echo "</a>";
+			} else {
+			echo $Reply[name];
+			}
+			echo "<form action='result.php' method='post'>";//返信削除フォーム開始
+			echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
+			foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+				echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+			}
+			echo "<input name='reblyIDDel' value='";
+			echo $Reply[ID];
+			echo "' type='hidden' />";//返信記事ID取得
+			echo "<input name='articleID' value='";
+			echo $Reply[ID];
+			echo "' type='hidden' />";//記事ID取得
+			echo "</form>";//返信フォーム終了
+	//返事表示
 			echo "<form action='result.php' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
 			echo "Edit Reply返事を書き直す";
 			echo "</div>";
 			
 			echo "<div id='HSfield' style='display;none;'>";//返事の編集開始
-			echo "<input value='ReRe' type='submit' name='articleReReply'>";
+			echo "<input value='返信の編集' type='submit' name='articleReply'>";
 			echo "<input name='articleAdd' style=display;none;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' />";
 			echo "</div></form>";//返事の編集終了
 		}
-		
-	echo "</div>";//返信展開終了
+		echo "</div>";//返信展開終了
 	}
 	echo "</td>";
 	echo "<td><form action='tagresist.php' method='post'>";
@@ -344,7 +341,24 @@ foreach ($table as $articleA){
 	echo "<input name='searchType' value='$searchType'type='hidden' /><input name='targetIDTo' value='";
 	echo $articleA["article"][ID];
 	echo "'type='hidden' />";
-	echo "</form></td>";
+	echo "</form>";
+	echo "<div onClick='toggleShow(this);'>";
+	echo "返信フォーム";
+	echo "</div>";
+	echo "<div id='HSfield' style='display: none;'>";
+		echo "<form action='result.php' method='post'>";//返信フォーム開始
+		echo "<input value='記事への返信' type='submit' name='articleReply'>";//ボタン
+		echo "<input name='articleReply'/>";
+		foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+			echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+		}
+		echo "<input name='articleID' value='";
+		echo $articleA["article"][ID];
+		echo "' type='hidden' />";//記事ID取得
+		echo "</form>";//返信フォーム終了
+	echo "</div>";
+
+	echo "</td>";
 	
 	foreach ($taghash as $key => $tagValue){
 		echo "<td>";

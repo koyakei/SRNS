@@ -34,6 +34,7 @@ require_once("cmn/debug.php");
 require_once("cmn/utils.php");
 require_once("cmn/functions.php");
 $pdo = db_open();
+$articleAdd = $_REQUEST['articleAdd'];
 $replyName = $_REQUEST['articleReply'];
 $ownerID = 1;//今は管理者にしている
 $replyTagID = 2138;//返信ID　tag;reply
@@ -57,11 +58,40 @@ $whereLinkOR = "(`LINK`.`LFrom` =" . join(" OR `LINK`.`LFrom` =", $tagIDList).")
 $whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
-$articleEdit = htmlspecialchars($_POST['articleEdit']);/*
-print_r ($articleID);
-print_r ($replyName);*/
-if ( $articleID != null and $replyName != null) {
+$articleEdit = htmlspecialchars($_POST['articleEdit']);
+if ($articleAdd != null) {
 	$pdo->beginTransaction();//記事を追加する
+	$sql = "INSERT INTO  `db0tagplus`.`article` (
+	`ID` ,
+	`name` ,
+	`owner` ,
+	`Created_time`
+	)
+	VALUES (
+	NULL ,  '$articleAdd', '1', NOW( )
+	);";
+	$pdo->exec($sql); 
+	$LINK1stID = $pdo->lastInsertId('ID');
+	$pdo->commit();
+	//タグを追加する
+	foreach ($tagIDList as $targetTagID) {
+		$pdo->beginTransaction();//既存の記事とタグのリンク作成
+		$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+		`ID` ,
+		`LFrom` ,
+		`LTo` ,
+		`quant` ,
+		`owner`
+		)
+		VALUES (
+		NULL ,  '$targetTagID',  '$LINK1stID',  '1',  '1'
+		);";
+		$pdo->exec($sql); $pdo->commit(); 
+	}
+}
+	
+if ( $articleID != null and $replyName != null) {
+	$pdo->beginTransaction();//返事を追加する
 	$sql = "INSERT INTO  `db0tagplus`.`article` (
 	`ID` ,
 	`name` ,
@@ -114,7 +144,7 @@ $pdo->beginTransaction();
  $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `article`.`ID` = $articleID;";
 $pdo->exec($sql); $pdo->commit();
 };
-if ($tagEdit != null) {
+if ($tagEdit != null) {//タグ編集
 	$pdo->beginTransaction();
 	 $sql = "UPDATE `db0tagplus`.`Tag` SET `name` = '$tagEdit' WHERE `Tag`.`ID` = $tagID;";
 	$pdo->exec($sql); $pdo->commit();
@@ -217,16 +247,31 @@ echo '<input type="radio" name="searchType" value="0"> AND
 <input type="submit" value="変更">
 </form>
 <table border="1">
-
+<tr>
 <?php
 foreach ($searchingTagA as $searchingTag) {
-echo "<tr><form action='result.php' method='post'>";
+echo "<form action='result.php' method='post'>";
 	echo"<td><a href='result.php?tagID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a><input name='SearchType' value='$SearchType'type='hidden' />
 		<div id='viewMainTag' onClick='showHide();' ><input value='編集' type='submit' name='Edit'></div>
 		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /><input name='SearchType' value='$SearchType'type='hidden' /></td>";
 };
 echo "</form>";
 ?>
+<td>
+<div onClick="toggleShow(this);">
+記事追加
+</div>
+<div id="HSfield" style="display: none;">
+<?php
+	echo "<form action='result.php' method='post'><input value='記事追加' type='submit' name='addArticle'>";
+	foreach ($searchingTagA as $searchingTag) {
+		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+	}
+	echo "<input name='articleAdd'type='text' /></form>";
+
+?>
+</div>
+</td>
 </tr>
 </table>
 
@@ -234,20 +279,8 @@ echo "</form>";
 <thead>
 <tr>
 <th class="sorttable_nosort">
-<?php
-foreach ($searchingTagA as $searchingTag) {
-	echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-}
-?>
-<div onClick="toggleShow(this);">
-記事追加
-</div>
-<div id="HSfield" style="display: none;">
-<?php
-	echo "<form action='result.php' method='post'><input value='記事追加' type='submit' name='addArticle'>";
-	echo "<div id='editMainTag'><input name='articleAdd' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div></form>";
-?>
-</div>
+
+
 </th>
 <th></th>
 <?php

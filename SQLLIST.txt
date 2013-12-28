@@ -32,6 +32,13 @@ SELECT `LINC` . `LTo` FROM `LINK` ,`LINK` AS `Parent_link`
 //リプライ取得　記事IDを入力すると、　その記事をfrom としたリンクが全てとれてくるように
 SELECT `article`.`ID`, `article`.`name` FROM `LINK` INNER JOIN `article` ON `LINK` . `LTo` = `article` . `ID` WHERE  `LINK`.`LFrom` =$article[ID]
 
-SELECT `article`.`ID`, `article`.`name` FROM `LINK` INNER JOIN `article` ON `LINK` . `LTo` = `article` . `ID` WHERE  `LINK`.`LTo` =100000
 
-SELECT `article`.`ID`, `article`.`name` , `LINK`.* FROM `LINK` INNER JOIN `article` ON `LINK` . `LTo` = `article` . `ID` WHERE  `LINK`.`LFrom` =100000
+
+SELECT `LINK`. `LFrom`, `tagLink` . `LFrom`, `tagLink` . `LTo`, `article` . * FROM `LINK` INNER JOIN `LINK` AS tagLink ON `LINK` . `ID` = `tagLink` . `LTo` , `article`   WHERE  `LINK`.`LFrom` =100000 AND `article` . `ID` = `tagLink` . `LTo`
+
+SELECT `LINK`. `LFrom`, `tagLink` . `LFrom`, `tagLink` . `LTo`, `article` . * FROM `LINK`  JOIN `LINK` AS tagLink ON `LINK` . `ID` = `tagLink` . `LTo` , `article`   WHERE  `LINK`.`LFrom` =100000 AND `article` . `ID` = `tagLink` . ` LFrom`
+
+SELECT `LINK`. `LFrom`, `tagLink` . `LFrom`, `tagLink` . `LTo`, `article` . * FROM `LINK`, `LINK` AS tagLink, `article` WHERE `LINK` . `ID` = `tagLink` . `LTo` AND `LINK`.`LFrom` =100000 AND `article` . `ID` = tagLink . `LTo` 
+
+//
+SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$articleFrom AND `tagLink`.`LFrom` =$linkTag  AND `article` . `ID` = `LINK` . `LTo` 

@@ -1,0 +1,30 @@
+<script type="text/javascript">
+  function toggleShow(var this) {
+	var element = this.parentElement.HSfield;
+	alert elemet ;
+    if (element.style.visibility == 'hidden') {
+      element.style.visibility = 'visible';
+    } else {
+      element.style.visibility = 'hidden';
+    }
+  }
+</script>
+http://tagplus@www49.atpages.jp/2/showhidetest.html
+INSERT INTO  `db0tagplus`.`Tag` (
+`ID` ,
+`name` ,
+`owner` ,
+`Created_time`
+)
+VALUES (
+NULL ,  'Reply',  '1', NOW( )
+);
+function editMainTag() {
+document.getElementById("editMainTag").style.visibility = "true";
+}
+function changeMainTag() {
+  alert('called changeMainTag');
+}
+function submitMainTag() {
+  alert('called submitMainTag');
+}

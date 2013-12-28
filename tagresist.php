@@ -12,7 +12,7 @@ $tagAdd = $_REQUEST['tagAdd']; //追加したいタグ名
 $targetIDTo = $_REQUEST['targetIDTo'];
 $pdo = db_open();
 $sql = "SELECT `Tag`.*  , `userP`.`name` AS userProfile FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  '$tagAdd' AND `userP`.`ID` = `User_TBL` . `profileID`";
-$tagIDfinding = $pdo->query($sql);
+$tagIDfinding = $pdo->query($sql);//既存のタグを探す
 $i = 0;
  while ($row = $tagIDfinding->fetch()) {
 	$name = htmlspecialchars($row['name']);
@@ -34,9 +34,9 @@ $i = 0;
 	}
 print_r ($tagA);
 
-if ($tagA == null) {
+if ($tagA == null) {//既存のタグが存在しなかったら、新規追加
 	echo "新規追加";
-	//追加する
+	//タグを追加する
 	$pdo->beginTransaction();
 	 $sql = "INSERT INTO  `db0tagplus`.`Tag` (
 	`ID` ,
@@ -50,7 +50,7 @@ if ($tagA == null) {
 	$lastAIID = $pdo->lastInsertId('ID');
 	$pdo->commit();
 	print_r ($lastAIID);
-	$pdo->beginTransaction();
+	$pdo->beginTransaction();//既存の記事とタグのリンク作成
 	 $sql = "INSERT INTO  `db0tagplus`.`LINK` (
 	`ID` ,
 	`LFrom` ,
@@ -64,7 +64,7 @@ if ($tagA == null) {
 	$pdo->exec($sql); $pdo->commit(); 
 } else {
 echo "関係追加";
-	//それがすでに当該記事にリンク付されているのか調べる
+	//既存のタグがすでに当該記事にリンク付されているのか調べる
 	foreach ($tagA as $eachTag){
 		echo "<br>当該タグID";
 		print_r ($eachTag[ID]);//既存のタグのID

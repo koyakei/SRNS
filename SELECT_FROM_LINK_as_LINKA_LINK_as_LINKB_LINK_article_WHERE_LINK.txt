@@ -1,0 +1,10 @@
+SELECT * FROM  `LINK` as LINKA, `LINK` as LINKB LINK` , `article` WHERE (`LINK`.`LFrom` =237 OR `LINK`.`LFrom` =2129) AND `LINK`.`LTo` = `article`.`ID`
+
+
+LINKA.`LFrom` =237 OR
+
+SELECT `Tag` . * , `LINK`.`quant` ,`User_TBL` . * FROM  `LINK` ,  `Tag`,  `Tag` as `PTag` , `User_TBL`WHERE  `LINK`.`LTo` =100000 AND  `LINK`.`LFrom` = `Tag`.`ID`
+
+SELECT `Tag` . * , `LINK`.`quant` ,`User_TBL` . * FROM  `LINK` ,  `Tag` , `User_TBL`WHERE  `LINK`.`LTo` =100000 AND  `LINK`.`LFrom` = `Tag`.`ID` 
+
+ SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID` . `profileID` , `LINK` ,  `Tag` , `User_TBL` ,`Tag` as PTag WHERE  `LINK`.`LTo` =100000 AND  `LINK`.`LFrom` = `Tag`.`ID` 

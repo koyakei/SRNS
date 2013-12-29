@@ -5,20 +5,39 @@
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <title>ƒ\[ƒg‚Å‚«‚é•\‚ğì¬‚·‚éusorttable.jsv</title>
 <script src="js/sorttable.js" type="text/javascript"></script>
+<link href="css/sitemapstyler.css" rel="stylesheet" type="text/css" media="screen" />
+<script type="text/javascript" src="js/sitemapstyler.js"></script>
+
 </head>
 <body>
 
 <table class="sortable">
-<?php
-echo "<thead>";
-?>
-  <tr><th>Person</th><th>Monthly pay</th><th class="sorttable_nosort">NoSort</th></tr>
+<thead>
 </thead>
 <tbody>
-  <tr><td sorttable_customkey="1">Jan Molby</td><td>’12,000</td><td>No.1</td></tr>
-  <tr><td>Steve Nicol</td><td>’8,500</td><td>N/A</td></tr>
-  <tr><td>Steve McMahon</td><td>’9,200</td><td>N/A</td></tr>
-  <tr><td>John Barnes</td><td>’15,300</td><td>N/A</td></tr>
+<form>
+<select name="“s“¹•{Œ§">
+<option value="1">–kŠC“¹</option>
+<option value="2" selected>“Œ‹</option>
+<option value="3">‰«“ê</option>
+</select>
+</form>
+<ul id="sitemap">
+			<li><a href="#">First link</a>
+				<ul>
+					<li><a href="#">First link</a>
+						<ul>
+							<li><a href="#">First link</a></li>
+							<li><a href="#">Second link</a></li>
+							<li><a href="#">Third link</a></li>
+							<li><a href="#">Fourth link</a></li>
+							<li><a href="#">Fifth link</a></li>
+						</ul>							
+					</li>
+
+				</ul>					
+			</li>
+</ul>
 </tbody>
 </body>
 </html>

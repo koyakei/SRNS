@@ -36,6 +36,14 @@ require_once("cmn/functions.php");
 $pdo = db_open();
 $articleAdd = $_REQUEST['articleAdd'];
 $replyName = $_REQUEST['articleReply'];
+
+$tagWeight = $_REQUEST['tagWeight'];//
+$targetLinkID = $_REQUEST['targetLinkID'];
+if ($tagWeight != null) {
+$pdo->beginTransaction();
+ $sql = "UPDATE `db0tagplus`.`LINK` SET `quant` = '$tagWeight WHERE `LINK`.`ID` = $targetLinkID;";
+$pdo->exec($sql); $pdo->commit();
+}
 $ownerID = 1;//今は管理者にしている
 $replyTagID = 2138;//返信ID　tag;reply
 if ($_REQUEST['tagIDList'] != null) {
@@ -409,7 +417,7 @@ foreach ($table as $articleA){
 					echo "<input name='searchType' value='$searchType'type='hidden' /></form>";
 				}
 				echo "<form action='result.php' method='post'>";//重さ変更ポスト
-				echo "<input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input value='重さ変更' type='submit' name='weghit'><input name='searchType' value='$searchType'type='hidden' />";
+				echo "<input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='targetLinkID' value='$tagA[linkID]'type='hidden' /><input value='重さ変更' type='submit' name='weghit'><input name='searchType' value='$searchType'type='hidden' />";
 				echo "</form>";
 				
 				echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";

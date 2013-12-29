@@ -42,3 +42,5 @@ SELECT `LINK`. `LFrom`, `tagLink` . `LFrom`, `tagLink` . `LTo`, `article` . * FR
 
 //
 SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$articleFrom AND `tagLink`.`LFrom` =$linkTag  AND `article` . `ID` = `LINK` . `LTo` 
+
+UPDATE `db0tagplus`.`LINK` SET `quant` = '$articleEdit' WHERE `LINK`.`ID` = $articleID;

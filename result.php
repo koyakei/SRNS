@@ -202,8 +202,8 @@ while ($row = $articleSelect->fetch()) {
 		$o++;
 	}
 	//リプライ取得終了
-	$j = 0;
-	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
+	$j = 0;//タグのリンク取得
+	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`LINK`.`ID` as linkID ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
 	$articleD = $pdo->query($sql);
 	while ($row = $articleD->fetch()) {
 		$tagName = htmlspecialchars($row['name']); 
@@ -211,12 +211,14 @@ while ($row = $articleSelect->fetch()) {
 		$tagQuant = htmlspecialchars($row['quant']);
 		$Pname = htmlspecialchars($row['Pname']);
 		$owner = htmlspecialchars($row['owner']);
+		$linkID = htmlspecialchars($row['linkID']);
 		$tagA = array(
 		'name' => $tagName,
 		'ID' => $subTagID,
 		'quant' => $tagQuant,
 		'Pname' => $Pname,
-		'owner' => $owner
+		'owner' => $owner,
+		'linkID' => $linkID
 		);
 		$table[$h]["tag"][$j] = $tagA;
 		$j++;
@@ -392,12 +394,12 @@ foreach ($table as $articleA){
 	echo "</div>";
 
 	echo "</td>";
-	
+	//リンクの重さ
 	foreach ($taghash as $key => $tagValue){
 		echo "<td>";
 		foreach ($articleA["tag"] as $tagA){
 			if ($key == $tagA[ID]){
-				echo "$tagA[quant]</td>";
+				echo "$tagA[quant]</td>";//リンクの重さ
 				echo "<td>";
 				if (false == in_array($tagA[ID],$tagIDList)) {
 					echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' />";
@@ -406,9 +408,10 @@ foreach ($table as $articleA){
 					}
 					echo "<input name='searchType' value='$searchType'type='hidden' /></form>";
 				}
-				echo "<form action='result.php' method='post'>";
+				echo "<form action='result.php' method='post'>";//重さ変更ポスト
+				echo "<input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /><input value='重さ変更' type='submit' name='weghit'><input name='searchType' value='$searchType'type='hidden' />";
+				echo "</form>";
 				
-				echo "<input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' /></form>";
 				echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
 				echo "<input name='targetDelIDTo' value='";
 				echo $articleA["article"][ID];

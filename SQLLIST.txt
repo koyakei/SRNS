@@ -44,3 +44,5 @@ SELECT `LINK`. `LFrom`, `tagLink` . `LFrom`, `tagLink` . `LTo`, `article` . * FR
 SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$articleFrom AND `tagLink`.`LFrom` =$linkTag  AND `article` . `ID` = `LINK` . `LTo` 
 
 UPDATE `db0tagplus`.`LINK` SET `quant` = '$articleEdit' WHERE `LINK`.`ID` = $articleID;
+
+SELECT  `tagLink`.`LFrom` AS TLFROM, `Tag` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  `LINK`.`LFrom` =$targetTagIDFrom AND `tagLink`.`LFrom` =$tagSSugID  AND `article` . `ID` = `LINK` . `LTo` AND `LINK`.`LTo`  LIKE  '%addTagName%';"; //親タグと当該タグのリンク重複を調べる

@@ -147,9 +147,20 @@ if ( $articleID != null and $replyName != null) {
 	$pdo->exec($sql); 
 	$pdo->commit();
 }
-if ($targetDelIDFrom != null) {
+
+if ($targetDelIDFrom != null) {//リンク元とリンク先を指定して削除
 $pdo->beginTransaction();
  $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $targetDelIDFrom AND `LINK`.`LTo` = $targetDelIDTo;";
+$pdo->exec($sql); $pdo->commit();
+}
+    
+$replyLinkIDDel = $_REQUEST['replyLinkIDDel'];
+if ($replyLinkIDDel != null) {//リンク元とリンク先を指定して削除
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`ID` = $replyLinkIDDel;";
+$pdo->exec($sql); $pdo->commit();
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`article` WHERE `article`.`ID` = $articleID;";
 $pdo->exec($sql); $pdo->commit();
 }
 if ($articleEdit != null) {
@@ -217,17 +228,19 @@ while ($row = $articleSelect->fetch()) {
 	);
 	//リプライ取得
 	$o = 0;
-	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
+	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
 	$ReplySQL = $pdo->query($sql);
 	while ($row = $ReplySQL->fetch()) {
 		$replyName = htmlspecialchars($row['name']); 
 		$replyID = htmlspecialchars($row['ID']);
 		$ownerID = htmlspecialchars($row['owner']);
 		$CreatedTime = htmlspecialchars($row['Created_time']);
+		$LinkID = htmlspecialchars($row['LinkID']);
 		$replyA = array(
 		'name' => $replyName,
 		'owner' => $ownerID,
 		'CreatedTime' => $CreatedTime,
+		'LinkID' => $LinkID,
 		'ID' => $replyID
 		);
 		$table[$h]["reply"][$o] = $replyA;
@@ -399,13 +412,13 @@ foreach ($table as $articleA){
 			foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
 				echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 			}
-			echo "<input name='reblyIDDel' value='";
-			echo $Reply[ID];
+			echo "<input name='replyLinkIDDel' value='";
+			echo $Reply[LinkID];
 			echo "' type='hidden' />";//返信記事ID取得
 			echo "<input name='articleID' value='";
 			echo $Reply[ID];
 			echo "' type='hidden' />";//記事ID取得
-			echo "</form>";//返信フォーム終了
+			echo "</form>";//返信削除フォーム終了
 	//返事表示
 			echo "<form action='result.php' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
 			echo "Edit Reply返事を書き直す";

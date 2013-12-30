@@ -298,10 +298,10 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 	$p++;
 	if ($searchingTag[tagSSug] != null){
 		foreach ($searchingTag[tagSSug] as $tagSug){
-			echo "<li><a href='result.php?tagID=$tagSug[ID]'>$tagSug[name]関係付けられているタグ</a></li>";
+			echo "<li><a href='result.php?tagID=$tagSug[ID]'>$tagSug[name]</a></li>";
+			
 		}
 	}
-	echo "<li>関係付けられているタグ</li>";
 	echo "</ul></li></ul>";
 	echo "</td>";
 }
@@ -444,12 +444,13 @@ foreach ($table as $articleA){
 
 	echo "</td>";
 	//リンクの重さ
-	foreach ($taghash as $key => $tagValue){
+	foreach ($taghash as $key => $tagValue){//タグの数だけ回す
 		echo "<td>";
-		foreach ($articleA["tag"] as $tagA){
-			if ($key == $tagA[ID]){
-				echo "$tagA[quant]</td>";//リンクの重さ
-				echo "<td>";
+		$isContain = false;
+		foreach ($articleA["tag"] as $tagA){//各タグの列２つ分について全検索タグと比較このループで一回も一致しなかったら
+			if ($key == $tagA[ID]){//キーが当該IDと一致したら
+				$isContain  = true;
+				echo "$tagA[quant]</td><td>";//リンクの重さ
 				if (false == in_array($tagA[ID],$tagIDList)) {
 					echo "<form action='result.php' method='post'><input value='絞' type='submit' name='searchAdd'><input name='tagIDList[]' value='$tagA[ID]'type='hidden' />";
 					foreach ($searchingTagA as $searchingTag) {
@@ -470,12 +471,14 @@ foreach ($table as $articleA){
 				}
 				echo "<input name='targetDelIDFrom' value='$tagA[ID]'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a>";
 				echo "</form>"; 
-				
-			
-				
 			}
+			
 		}
-		echo "</td>"; 
+	if ($isContain == false){
+		echo "</td><td>";
+	}
+	
+	echo "</td>";//正常な繰り返しのスコープ
 	}
 	echo "</tr>";
 } 

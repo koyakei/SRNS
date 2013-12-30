@@ -201,7 +201,7 @@ while ($row = $articleSelect->fetch()) {
 	);
 	//リプライ取得
 	$o = 0;
-	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =2138  AND `article` . `ID` = `LINK` . `LTo`";
+	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
 	$ReplySQL = $pdo->query($sql);
 	while ($row = $ReplySQL->fetch()) {
 		$replyName = htmlspecialchars($row['name']); 

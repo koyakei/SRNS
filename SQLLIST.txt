@@ -3,8 +3,8 @@ FROM  `User_TBL`INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `ID`
 
  SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =100000 AND  `LINK`.`LFrom` = `Tag`.`ID` 
 
- SELECT `Tag` . * , `LINK`.`quant` ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`
-
+SELECT `Tag`.*  , `userP`.`name` AS userProfile FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  '$addTagName' AND `userP`.`ID` = `User_TBL` . `profileID`
+//すでに同一親記事に対してタグがリンクされているか探す
 SELECT * 
 FROM  `Tag` 
 WHERE  `name` LIKE  '生涯'

@@ -61,7 +61,23 @@ if ($tagA == null) {//既存のタグが存在しなかったら、新規追加
 	VALUES (
 	NULL ,  '$lastAIID',  '$targetIDTo',  '1',  '1'
 	);";
-	$pdo->exec($sql); $pdo->commit(); 
+	$pdo->exec($sql); 
+	$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
+	$pdo->commit();
+	$pdo->beginTransaction();//元記事-返信リンクと返信タグリンクを作成
+	$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+	`ID` ,
+	`LFrom` ,
+	`LTo` ,
+	`quant` ,
+	`owner`,
+	`Created_time`
+	)
+	VALUES (
+	NULL ,  '$searchTagID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+	);";
+	$pdo->exec($sql); 
+	$pdo->commit();
 } else {
 echo "関係追加";
 	//既存のタグがすでに当該記事にリンク付されているのか調べる
@@ -96,7 +112,23 @@ echo "関係追加";
 			VALUES (
 			NULL ,  '$From',  '$targetIDTo',  '1',  '1'
 			);";
-			$pdo->exec($sql); $pdo->commit();
+			$pdo->exec($sql); 
+$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
+	$pdo->commit();
+	$pdo->beginTransaction();//元記事-返信リンクと返信タグリンクを作成
+	$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+	`ID` ,
+	`LFrom` ,
+	`LTo` ,
+	`quant` ,
+	`owner`,
+	`Created_time`
+	)
+	VALUES (
+	NULL ,  '$searchTagID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+	);";
+	$pdo->exec($sql); 
+	$pdo->commit();
 		} else {
 		//重複している場合
 			echo "重複している";

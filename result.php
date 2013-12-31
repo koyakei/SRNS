@@ -41,6 +41,8 @@ require_once("cmn/utils.php");
 require_once("cmn/functions.php");
 require_once("cmn/specialTagIDList.php");
 $pdo = db_open();
+
+
 $articleAdd = $_REQUEST['articleAdd'];
 $replyName = $_REQUEST['articleReply'];
 $tagWeight = $_REQUEST['tagWeight'];//weight 変更
@@ -72,6 +74,106 @@ $whereAND = "`ID`=" . join(" AND `ID`=", $tagIDList);
 $articleID = $_REQUEST['articleID'];
 $tagEdit = htmlspecialchars($_POST['tagEdit']);
 $articleEdit = htmlspecialchars($_POST['articleEdit']);
+$addTagWithTagRelation = $_REQUEST['addTagWithTagRelation'];//タグをタグに検索で関連付けて追加
+if ($addTagWithTagRelation != null) {
+	$sql = "SELECT `Tag`.*  , `userP`.`name` AS userProfile FROM `Tag` AS userP ,`User_TBL` INNER JOIN `Tag` ON `User_TBL` . `profileID` = `Tag` . `owner`   WHERE  `Tag` .`name` LIKE  '$addTagWithTagRelation' AND `userP`.`ID` = `User_TBL` . `profileID`";
+	$tagIDfinding = $pdo->query($sql);//既存のタグを探す一層の並列関係のみ
+	$i = 0;
+	while ($row = $tagIDfinding->fetch()) {
+		$name = htmlspecialchars($row['name']);
+		$ID = htmlspecialchars($row['ID']);
+		$owner = htmlspecialchars($row['owner']);
+		$userProfile = htmlspecialchars($row['userProfile']);
+		$Tag = array(
+			'name' => $name,
+			'ID' => $ID,
+			'ownerID' => $owner,
+			'userProfile' => $userProfile
+		);
+		$tagA[$i] = $Tag; 
+		$i++;
+	}
+	if ($tagA == null) {
+		echo "タグを登録してください";
+		$pdo->beginTransaction();//現在検索しているタグに新規追加するタグを関連させながら追加
+		$sql = "INSERT INTO  `db0tagplus`.`Tag` (
+		`ID` ,
+		`name` ,
+		`owner` ,
+		`Created_time`
+		)
+		VALUES (
+		NULL ,  '$addTagWithTagRelation', '$ownerID', NOW( )
+		);";
+		$pdo->exec($sql); 
+		$LINK1stID = $pdo->lastInsertId('ID');
+		$pdo->commit();
+		//タグを追加する
+		foreach ($tagIDList as $targetTagID) {
+			$pdo->beginTransaction();//既存の記事とタグのリンク作成
+			$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+			`ID` ,
+			`LFrom` ,
+			`LTo` ,
+			`quant` ,
+			`owner`
+			)
+			VALUES (
+			NULL ,  '$targetTagID',  '$LINK1stID',  '1',  '1'
+			);";
+			$pdo->exec($sql);
+			$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
+			$pdo->commit();
+			$pdo->beginTransaction();//元記事-返信リンクと返信タグリンクを作成
+			$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+			`ID` ,
+			`LFrom` ,
+			`LTo` ,
+			`quant` ,
+			`owner`,
+			`Created_time`
+			)
+			VALUES (
+			NULL ,  '$searchTagID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+			);";
+			$pdo->exec($sql); 
+		}
+	} else {
+		foreach ($tagA as $eachTag){
+			//タグを追加する
+			foreach ($tagIDList as $targetTagID) {
+				$pdo->beginTransaction();//既存の記事とタグのリンク作成
+				$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+				`ID` ,
+				`LFrom` ,
+				`LTo` ,
+				`quant` ,
+				`owner`
+				)
+				VALUES (
+				NULL ,  '$targetTagID',  '$eachTag[ID]',  '1',  '$ownerID'
+				);";
+				$pdo->exec($sql);
+				$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
+				$pdo->commit();
+				$pdo->beginTransaction();//元記事-返信リンクと検索タグリンクを作成
+				$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+				`ID` ,
+				`LFrom` ,
+				`LTo` ,
+				`quant` ,
+				`owner`,
+				`Created_time`
+				)
+				VALUES (
+				NULL ,  '$searchTagID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+				);";
+				$pdo->exec($sql); 
+				$pdo->commit(); 
+			}
+		}
+	}
+}
 if ($articleAdd != null) {
 	$pdo->beginTransaction();//記事を追加する
 	$sql = "INSERT INTO  `db0tagplus`.`article` (
@@ -97,12 +199,28 @@ if ($articleAdd != null) {
 		`owner`
 		)
 		VALUES (
-		NULL ,  '$targetTagID',  '$LINK1stID',  '1',  '1'
+		NULL ,  '$targetTagID',  '$LINK1stID',  '1',  '$ownerID'
 		);";
-		$pdo->exec($sql); $pdo->commit(); 
+		$pdo->exec($sql);
+	 	$lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
+		$pdo->commit();
+		$pdo->beginTransaction();//元記事-返信リンクと返信タグリンクを作成
+		$sql = "INSERT INTO  `db0tagplus`.`LINK` (
+		`ID` ,
+		`LFrom` ,
+		`LTo` ,
+		`quant` ,
+		`owner`,
+		`Created_time`
+		)
+		VALUES (
+		NULL ,  '$tagSSugID',  '$lastAIID',  '1',  '$ownerID', NOW( )
+		);";
+		$pdo->exec($sql); 
+		$pdo->commit(); 
 	}
 }
-	
+
 if ( $articleID != null and $replyName != null) {
 	$pdo->beginTransaction();//返事を追加する
 	$sql = "INSERT INTO  `db0tagplus`.`article` (
@@ -198,7 +316,7 @@ while ($row = $tagG->fetch()) {//タグIDを取得
 		'name' => $name,
 		'ID' => $ID
 	);
-	$searchingTagA[$i] = $searchingTag;
+	$searchingTagA[$i] = $searchingTag;//サジェスト取得
 	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `Tag` . * FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  `LINK`.`LFrom` =$searchingTag[ID] AND `tagLink`.`LFrom` =$tagSSugID  AND `Tag` . `ID` = `LINK` . `LTo`";
 	$tagSuggestSQL = $pdo->query($sql);
 	$o = 0;
@@ -226,10 +344,9 @@ $table = array();
 
 if ($searchType == 1) {//記事取得
 //OR検索
-	$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
-/*$sql = "SELECT  DISTINCT `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  $whereLinkOR AND `tagLink`.`LFrom` =$searchTagID  AND `article` . `ID` = `LINK` . `LTo`";*/
-} else{
-	$sql = "SELECT  `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` GROUP BY  `ID` HAVING COUNT( * ) >=2";
+$sql = "SELECT  DISTINCT `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  $whereLinkOR AND `tagLink`.`LFrom` =$searchTagID  AND `article` . `ID` = `LINK` . `LTo` UNION SELECT  DISTINCT `tagLink`.`LFrom` AS TLFROM, `Tag` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  $whereLinkOR AND `tagLink`.`LFrom` =$searchTagID  AND `Tag` . `ID` = `LINK` . `LTo`";
+} else{//UNION でタグもとってきている
+$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  $whereLinkOR AND `tagLink`.`LFrom` =$searchTagID  AND `article` . `ID` = `LINK` . `LTo` GROUP BY  `ID` HAVING COUNT( * ) >=2 UNION SELECT  `tagLink`.`LFrom` AS TLFROM, `Tag` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  $whereLinkOR AND `tagLink`.`LFrom` =$searchTagID  AND `Tag` . `ID` = `LINK` . `LTo` GROUP BY  `ID` HAVING COUNT( * ) >=2";
 }
 $articleSelect = $pdo->query($sql);
 $k = 0;
@@ -348,6 +465,19 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 
 ?>
 </div>
+<div onClick="toggleShow(this);">
+タグ追加
+</div>
+<div id="HSfield" style="display: none;">
+<?php
+	echo "<form action='result.php' method='post'><input value='タグ追加' type='submit' name='addTagWithTagRelationBtn'>";
+	foreach ($searchingTagA as $searchingTag) {
+		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+	}
+	echo "<input name='addTagWithTagRelation'type='text' /></form>";
+
+?>
+</div>
 </td>
 </tr>
 </table>
@@ -361,6 +491,7 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 </th>
 <th></th>
 <?php
+print_r ($taghash);
 foreach ($taghash as $key => $tagValue){
 echo "<th>";
 echo $tagValue[1];
@@ -384,7 +515,7 @@ foreach ($table as $articleA){
 	echo "</a>";
 
 	echo "<form action='result.php' method='post'>";//記事削除フォーム開始
-	echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
+	echo "<input value='記事の削除' type='submit' name='articleReply'>";//ボタン
 	foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
 		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 	}

@@ -154,6 +154,15 @@ $pdo->beginTransaction();
 $pdo->exec($sql); $pdo->commit();
 }
     
+$articleIDDel = $_REQUEST['articleIDDel'];//記事削除
+if ($articleIDDel != null) {
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`article` WHERE `article`.`ID` = $articleIDDel;";
+$pdo->exec($sql); $pdo->commit();
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $articleIDDel OR `LINK`.`LTo` = $articleIDDel;";//リンク削除
+$pdo->exec($sql); $pdo->commit();
+}//記事削除終了
 $replyLinkIDDel = $_REQUEST['replyLinkIDDel'];
 if ($replyLinkIDDel != null) {//リンク元とリンク先を指定して削除
 $pdo->beginTransaction();
@@ -172,11 +181,15 @@ if ($tagEdit != null) {//タグ編集
 	$pdo->beginTransaction();
 	$sql = "UPDATE `db0tagplus`.`Tag` SET `name` = '$tagEdit' WHERE `Tag`.`ID` = $tagID;";
 	$pdo->exec($sql); $pdo->commit();
-	$sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";//タグ選択
+	$sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";//タグ選択　記事取得
 } else {
-  	$sql = "SELECT * FROM `Tag` WHERE $whereOR";//複数条件の時のタグ選択
+  	$sql = "SELECT * FROM `Tag` WHERE $whereOR";//複数条件の時のタグ選択　記事取得
 }
 $tagG = $pdo->query($sql);
+
+
+
+
 $i = 0;
 while ($row = $tagG->fetch()) {//タグIDを取得
 	$name = htmlspecialchars($row['name']);
@@ -214,6 +227,7 @@ $table = array();
 if ($searchType == 1) {//記事取得
 //OR検索
 	$sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` ";
+/*$sql = "SELECT  DISTINCT `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  $whereLinkOR AND `tagLink`.`LFrom` =$searchTagID  AND `article` . `ID` = `LINK` . `LTo`";*/
 } else{
 	$sql = "SELECT  `article` . * FROM  `LINK` , `article` WHERE  $whereLinkOR AND `LINK`.`LTo` =  `article`.`ID` GROUP BY  `ID` HAVING COUNT( * ) >=2";
 }
@@ -226,7 +240,7 @@ while ($row = $articleSelect->fetch()) {
 	'name' => $articleName,
 	'ID' => $articleID
 	);
-	//リプライ取得
+	//返事取得
 	$o = 0;
 	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
 	$ReplySQL = $pdo->query($sql);
@@ -368,6 +382,17 @@ foreach ($table as $articleA){
 	echo "' target='_blank'>";
 	echo $articleA["article"][name];
 	echo "</a>";
+
+	echo "<form action='result.php' method='post'>";//記事削除フォーム開始
+	echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
+	foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+	}
+	echo "<input name='articleIDDel' value='";
+	echo $articleA["article"][ID];
+	echo "' type='hidden' />";//返信記事ID取得
+	echo "</form>";//記事削除フォーム終了
+
 	echo "<div onClick='toggleShow(this);'>";
 	echo "編集";
 	echo "</div>";
@@ -440,7 +465,7 @@ foreach ($table as $articleA){
 	echo "'type='hidden' />";
 	echo "</form>";
 	echo "<div onClick='toggleShow(this);'>";
-	echo "コメント";
+	echo "コメント記事";
 	echo "</div>";
 	echo "<div id='HSfield' style='display: none;'>";
 		echo "<form action='result.php' method='post'>";//返信フォーム開始
@@ -454,7 +479,21 @@ foreach ($table as $articleA){
 		echo "' type='hidden' />";//記事ID取得
 		echo "</form>";//返信フォーム終了
 	echo "</div>";
-
+		echo "<div onClick='toggleShow(this);'>";
+	echo "コメントタグ";
+	echo "</div>";
+	echo "<div id='HSfield' style='display: none;'>";
+		echo "<form action='result.php' method='post'>";//返信フォーム開始
+		echo "<input value='記事への返信タグ' type='submit' name='articleReply'>";//ボタン
+		echo "<input name='articleReply'/>";
+		foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+			echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+		}
+		echo "<input name='articleID' value='";
+		echo $articleA["article"][ID];
+		echo "' type='hidden' />";//記事ID取得
+		echo "</form>";//返信フォーム終了
+	echo "</div>";
 	echo "</td>";
 	//リンクの重さ
 	foreach ($taghash as $key => $tagValue){//タグの数だけ回す

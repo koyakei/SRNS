@@ -34,15 +34,25 @@ function submitMainTag() {
 ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
 require_once("cmn/utils.php");
-$ID =  $_REQUEST['ID'];//IDでタグも記事もどっちもとってくる？
+$ID =  $_REQUEST['ID'];//
 
 if (is_array($ID)){
 $whereLinkOR = "(`LINK`.`LFrom` =" . join(" OR `LINK`.`LFrom` =", $ID).")";
 $whereAND = "`ID`=" . join(" AND `ID`=", $ID);
 echo $whereLinkOR;
 }
-echo $ID;//とりあえず、記事の1
+echo $ID;//
 $sql = "SELECT DISTINCT `article` . * FROM  `LINK` , `article` WHERE  $ID AND `LINK`.`LTo` =  `article`.`ID` ";
+
+
+$articleIDDel = $_REQUEST['articleIDDel'];//險倅ｺ玖�ｪ菴灘炎髯､
+if ($articleIDDel != null) {//險倅ｺ九�ｮ蜑企勁
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`article` WHERE `article`.`ID` = $articleIDDel;";
+$pdo->exec($sql); $pdo->commit();
+$pdo->beginTransaction();
+ $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $articleIDDel OR `LINK`.`LTo` = $articleIDDel;";//繝ｪ繝ｳ繧ｯ蜑企勁
+$pdo->exec($sql); $pdo->commit();
 ?>
 </body>
 </html>

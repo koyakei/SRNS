@@ -264,16 +264,12 @@ if ( $articleID != null and $replyName != null) {
 	$pdo->commit();
 }
 
-if ($targetDelIDFrom != null) {//リンク元とリンク先を指定して削除これでリンク削除全般ができる
-	foreach ($targetIDFrom as $fromID){
-		foreach ($targetIDTo as $toID){	
-			$pdo->beginTransaction();
-			 $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $fromID AND `LINK`.`LTo` = $toID;";
+if ($targetDelLinkID != null) {//リンク元とリンク先を指定して削除これでリンク削除全般ができる
+	foreach ($targetDelLinkID as $ID){
+			 $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`LFrom` = $fromID AND `LINK`.`ID` = $ID;";
 			$pdo->exec($sql); $pdo->commit();
-		}
-	}
 }
-
+}
 if ($articleEdit != null) {
 $pdo->beginTransaction();
  $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `article`.`ID` = $articleID;";
@@ -285,7 +281,11 @@ if ($tagEdit != null) {//タグ編集
 	$pdo->exec($sql); $pdo->commit();
 	$sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";//タグ選択　記事取得
 } else {
-  	$sql = "SELECT * FROM `Tag` WHERE $whereOR";//複数条件の時のタグ選択　記事取得
+  	if ($articleID != null){
+	  	$sql = "SELECT * FROM `article` WHERE `ID`=$articleID";//複数条件の時のタグ選択　記事取得
+	} else {
+		$sql = "SELECT * FROM `Tag` WHERE `ID`=$tagID";
+	}
 }
 $tagG = $pdo->query($sql);
 
@@ -556,11 +556,6 @@ echo "</th>";
 foreach ($table as $articleA){//記事表示ループ
 	echo "<tr>";
 	echo "<td><form action='result.php' method='post'>";
-	echo "<a href='articleDetale.php?ID=";
-	echo $articleA["article"][ID];
-	echo "' target='_blank'>";
-	echo $articleA["article"][name];
-	echo "</a>";
 	if (is_url($articleA["article"][name]) == TRUE) {//返信表示
 		echo "<a href='";
 		echo $articleA["article"][name];
@@ -568,7 +563,11 @@ foreach ($table as $articleA){//記事表示ループ
 		echo $articleA["article"][name];
 		echo "</a>";
 	} else {
-		echo "<a href='tagDetale.php?tagID=$articleA[article][ID]' target='_blank'>$articleA[article][name]</a>";
+		echo "<a href='tagDetale.php?tagID=";
+		echo $articleA["article"][ID];
+		echo "' target='_blank'>";
+		echo $articleA["article"][name];
+		echo "</a>";
 	}
 	echo "<form action='result.php' method='post'>";//記事削除フォーム開始
 	echo "<input value='記事の削除' type='submit' name='articleReply'>";//ボタン
@@ -635,10 +634,15 @@ foreach ($table as $articleA){//記事表示ループ
 			echo "<form action='result.php' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
 			echo "Edit Reply返事を書き直す";
 			echo "</div>";
-			
+			echo "<input name='articleID' value='";
+			echo $Reply[ID];
+			echo "' type='hidden' />";//記事ID取得
+			foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
+				echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+			}
 			echo "<div id='HSfield' style='display;none;'>";//返事の編集開始
 			echo "<input value='返信の編集' type='submit' name='articleReply'>";
-			echo "<input name='articleAdd' style=display;none;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' />";
+			echo "<input name='articleEdit' style=display;none;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' />";
 			echo "</div></form>";//返事の編集終了
 		}
 		echo "</div>";//返信展開終了
@@ -731,7 +735,11 @@ foreach ($table2 as $articleA){
 		echo $articleA["tag1"][name];
 		echo "</a>";
 	} else {
-		echo "<a href='tagDetale.php?tagID=$articleA[tag1][ID]' target='_blank'>$articleA[tag1][name]</a>";
+		echo "<a href='tagDetale.php?tagID=";
+		echo $articleA["tag1"][ID];
+		echo "' target='_blank'>";
+		echo $articleA["tag1"][name];
+		echo "</a>";
 	}
 	echo "<form action='result.php' method='post'>";//記事削除フォーム開始
 	echo "<input value='記事の削除' type='submit' name='articleReply'>";//ボタン
@@ -745,11 +753,11 @@ foreach ($table2 as $articleA){
 	echo $articleA["tag1"][ID];
 	echo "' type='hidden' />";//返信記事ID取得
 	echo "</form>";//記事削除フォーム終了
-
-/*	echo "<div onClick='toggleShow(this);'>";
+/*
+	echo "<div onClick='toggleShow(this);'>";
 	echo "編集";
 	echo "</div>";
-	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
+	echo "<div id='HSfield' style='display: none;'>";
 	echo "<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>";
 	echo "<div id='editMainTag'><input name='articleEdit' value='";
 	echo $articleA["tag1"][name];
@@ -787,11 +795,11 @@ foreach ($table2 as $articleA){
 			echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
 			foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
 				echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-			}
+			}/*
 			echo "<input name='replyLinkIDDel' value='";
 			echo $Reply[LinkID];
-			echo "' type='hidden' />";//返信記事ID取得
-			echo "<input name='articleID' value='";
+			echo "' type='hidden' />";*///返信記事ID取得
+			echo "<input name='targetDelIDTo[]' value='";
 			echo $Reply[ID];
 			echo "' type='hidden' />";//記事ID取得
 			echo "</form>";//返信削除フォーム終了

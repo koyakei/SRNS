@@ -219,7 +219,7 @@ if ($articleAdd != null) {
 }
 
 if ( $articleID != null and $replyName != null) {
-	$pdo->beginTransaction();//返事を追加する
+	$pdo->beginTransaction();//返事記事を追加する
 	$sql = "INSERT INTO  `db0tagplus`.`article` (
 	`ID` ,
 	`name` ,
@@ -323,130 +323,129 @@ while ($row = $tagG->fetch()) {//タグIDを取得
 }
 ?>
 <?php
-//タグ検索関連
-
 $table = array();
 $k = 0;//タグハッシュ
 $h = 0;//記事取得
-$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$articleID AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
-$articleSelect = $pdo->query($sql);
-while ($row = $articleSelect->fetch()) {
-	$articleName = htmlspecialchars($row['name']);
-	$articleID = htmlspecialchars($row['ID']);
-	$article = array(
-	'name' => $articleName,
-	'ID' => $articleID
-	);
-	//返事取得
-	$o = 0;
-	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
-	$ReplySQL = $pdo->query($sql);
-	while ($row = $ReplySQL->fetch()) {
-		$replyName = htmlspecialchars($row['name']); 
-		$replyID = htmlspecialchars($row['ID']);
-		$ownerID = htmlspecialchars($row['owner']);
-		$CreatedTime = htmlspecialchars($row['Created_time']);
-		$LinkID = htmlspecialchars($row['LinkID']);
-		$replyA = array(
-		'name' => $replyName,
-		'owner' => $ownerID,
-		'CreatedTime' => $CreatedTime,
-		'LinkID' => $LinkID,
-		'ID' => $replyID
+if ($articleID != null){
+	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$articleID AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
+	$articleSelect = $pdo->query($sql);
+	while ($row = $articleSelect->fetch()) {
+		$articleName = htmlspecialchars($row['name']);
+		$articleID = htmlspecialchars($row['ID']);
+		$article = array(
+		'name' => $articleName,
+		'ID' => $articleID
 		);
-		$table[$h]["reply"][$o] = $replyA;
-		$o++;
-	}
-	//リプライ取得終了
-	$j = 0;//タグのリンク・リンク取得
-	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`LINK`.`ID` as linkID ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
-	$articleD = $pdo->query($sql);
-	while ($row = $articleD->fetch()) {
-		$tagName = htmlspecialchars($row['name']); 
-		$subTagID = htmlspecialchars($row['ID']);
-		$tagQuant = htmlspecialchars($row['quant']);
-		$Pname = htmlspecialchars($row['Pname']);
-		$owner = htmlspecialchars($row['owner']);
-		$linkID = htmlspecialchars($row['linkID']);
-		$tagA = array(
-		'name' => $tagName,
-		'ID' => $subTagID,
-		'quant' => $tagQuant,
-		'Pname' => $Pname,
-		'owner' => $owner,
-		'linkID' => $linkID
-		);
-		$table[$h]["tag"][$j] = $tagA;
-		$j++;
-		if ($taghash[$subTagID] == null) {
-			$taghash[$subTagID] = array( $k++, $tagName, $subTagID, $Pname);
+		//返事取得
+		$o = 0;
+		$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
+		$ReplySQL = $pdo->query($sql);
+		while ($row = $ReplySQL->fetch()) {
+			$replyName = htmlspecialchars($row['name']); 
+			$replyID = htmlspecialchars($row['ID']);
+			$ownerID = htmlspecialchars($row['owner']);
+			$CreatedTime = htmlspecialchars($row['Created_time']);
+			$LinkID = htmlspecialchars($row['LinkID']);
+			$replyA = array(
+			'name' => $replyName,
+			'owner' => $ownerID,
+			'CreatedTime' => $CreatedTime,
+			'LinkID' => $LinkID,
+			'ID' => $replyID
+			);
+			$table[$h]["reply"][$o] = $replyA;
+			$o++;
 		}
-	}
-	$table[$h]["article"]= $article;
-	$h++;
-}
-
-$table2 = array();
-$h = 0;
-//返事としてくっついているタグを取得
-$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `Tag` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  `LINK`.`LFrom` =$tagID AND `tagLink`.`LFrom` =$replyTagID  AND `Tag` . `ID` = `LINK` . `LTo`";
-$tagSelect = $pdo->query($sql);
-while ($row = $tagSelect->fetch()) {
-	$articleName = htmlspecialchars($row['name']);
-	$articleID = htmlspecialchars($row['ID']);
-	$article = array(
-	'name' => $articleName,
-	'ID' => $articleID
-	);
-	//返事取得
-	$o = 0;
-	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
-	$Reply2SQL = $pdo->query($sql);
-	while ($row = $Reply2SQL->fetch()) {
-		$replyName = htmlspecialchars($row['name']); 
-		$replyID = htmlspecialchars($row['ID']);
-		$ownerID = htmlspecialchars($row['owner']);
-		$CreatedTime = htmlspecialchars($row['Created_time']);
-		$LinkID = htmlspecialchars($row['LinkID']);
-		$replyA = array(
-		'name' => $replyName,
-		'owner' => $ownerID,
-		'CreatedTime' => $CreatedTime,
-		'LinkID' => $LinkID,
-		'ID' => $replyID
-		);
-		$table2[$h]["reply"][$o] = $replyA;
-		$o++;
-	}
-	//リプライ取得終了
-	$j = 0;//タグのリンク・リンク取得
-	$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`LINK`.`ID` as linkID ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
-	$articleD2 = $pdo->query($sql);
-	while ($row = $articleD2->fetch()) {
-		$tagName = htmlspecialchars($row['name']); 
-		$subTagID = htmlspecialchars($row['ID']);
-		$tagQuant = htmlspecialchars($row['quant']);
-		$Pname = htmlspecialchars($row['Pname']);
-		$owner = htmlspecialchars($row['owner']);
-		$linkID = htmlspecialchars($row['linkID']);
-		$tagA = array(
-		'name' => $tagName,
-		'ID' => $subTagID,
-		'quant' => $tagQuant,
-		'Pname' => $Pname,
-		'owner' => $owner,
-		'linkID' => $linkID
-		);
-		$table2[$h]["tag"][$j] = $tagA;
-		$j++;
-		if ($taghash[$subTagID] == null) {
-			$taghash[$subTagID] = array( $k++, $tagName, $subTagID, $Pname);
+		//リプライ取得終了
+		$j = 0;//タグのリンク・リンク取得
+		$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`LINK`.`ID` as linkID ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
+		$articleD = $pdo->query($sql);
+		while ($row = $articleD->fetch()) {
+			$tagName = htmlspecialchars($row['name']); 
+			$subTagID = htmlspecialchars($row['ID']);
+			$tagQuant = htmlspecialchars($row['quant']);
+			$Pname = htmlspecialchars($row['Pname']);
+			$owner = htmlspecialchars($row['owner']);
+			$linkID = htmlspecialchars($row['linkID']);
+			$tagA = array(
+			'name' => $tagName,
+			'ID' => $subTagID,
+			'quant' => $tagQuant,
+			'Pname' => $Pname,
+			'owner' => $owner,
+			'linkID' => $linkID
+			);
+			$table[$h]["tag"][$j] = $tagA;
+			$j++;
+			if ($taghash[$subTagID] == null) {
+				$taghash[$subTagID] = array( $k++, $tagName, $subTagID, $Pname);
+			}
 		}
+		$table[$h]["article"]= $article;
+		$h++;
 	}
-	$table2[$h]["tag1"]= $article;
-	$h++;
+} else {
+	$table2 = array();
+	$h = 0;
+	//返事としてくっついているタグを取得
+	$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `Tag` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  `LINK`.`LFrom` =$tagID AND `tagLink`.`LFrom` =$replyTagID  AND `Tag` . `ID` = `LINK` . `LTo`";
+	$tagSelect = $pdo->query($sql);
+	while ($row = $tagSelect->fetch()) {
+		$articleName = htmlspecialchars($row['name']);
+		$articleID = htmlspecialchars($row['ID']);
+		$article = array(
+		'name' => $articleName,
+		'ID' => $articleID
+		);
+		//返事取得
+		$o = 0;
+		$sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `article` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `article`  WHERE  `LINK`.`LFrom` =$article[ID] AND `tagLink`.`LFrom` =$replyTagID  AND `article` . `ID` = `LINK` . `LTo`";
+		$Reply2SQL = $pdo->query($sql);
+		while ($row = $Reply2SQL->fetch()) {
+			$replyName = htmlspecialchars($row['name']); 
+			$replyID = htmlspecialchars($row['ID']);
+			$ownerID = htmlspecialchars($row['owner']);
+			$CreatedTime = htmlspecialchars($row['Created_time']);
+			$LinkID = htmlspecialchars($row['LinkID']);
+			$replyA = array(
+			'name' => $replyName,
+			'owner' => $ownerID,
+			'CreatedTime' => $CreatedTime,
+			'LinkID' => $LinkID,
+			'ID' => $replyID
+			);
+			$table2[$h]["reply"][$o] = $replyA;
+			$o++;
+		}
+		//リプライ取得終了
+		$j = 0;//タグのリンク・リンク取得
+		$sql = "SELECT `Tag` . * , `LINK`.`quant` ,`LINK`.`ID` as linkID ,`PTag`.`name` AS Pname FROM `User_TBL` INNER JOIN `Tag` AS PTag ON `User_TBL` . `profileID` = `PTag` . `ID`  , `LINK` ,  `Tag` WHERE  `LINK`.`LTo` =$article[ID] AND  `LINK`.`LFrom` = `Tag`.`ID`";
+		$articleD2 = $pdo->query($sql);
+		while ($row = $articleD2->fetch()) {
+			$tagName = htmlspecialchars($row['name']); 
+			$subTagID = htmlspecialchars($row['ID']);
+			$tagQuant = htmlspecialchars($row['quant']);
+			$Pname = htmlspecialchars($row['Pname']);
+			$owner = htmlspecialchars($row['owner']);
+			$linkID = htmlspecialchars($row['linkID']);
+			$tagA = array(
+			'name' => $tagName,
+			'ID' => $subTagID,
+			'quant' => $tagQuant,
+			'Pname' => $Pname,
+			'owner' => $owner,
+			'linkID' => $linkID
+			);
+			$table2[$h]["tag"][$j] = $tagA;
+			$j++;
+			if ($taghash[$subTagID] == null) {
+				$taghash[$subTagID] = array( $k++, $tagName, $subTagID, $Pname);
+			}
+		}
+		$table2[$h]["tag1"]= $article;
+		$h++;
+	}
 }
-
 ?>
 
 <table border="1">
@@ -486,13 +485,18 @@ if ($tagID != null){
 <div onClick="toggleShow(this);">
 記事追加
 </div>
+
 <div id="HSfield" style="display: none;">
-<?php
-	echo "<form action='result.php' method='post'><input value='記事追加' type='submit' name='addArticle'>";
-	foreach ($searchingTagA as $searchingTag) {
-		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+<?php//返事として記事追加
+	echo "<form action='result.php' method='post'><input value='記事追加' type='submit' name='addArticle'>";//
+	echo "<input name='articleID' value='";
+	if ($articleID != null){
+		echo $articleID;
+	} else {
+		echo $tagID;
 	}
-	echo "<input name='articleAdd'type='text' /></form>";
+	echo "'type='hidden' />";
+	echo "<input name='replyName'type='text' /></form>";
 
 ?>
 </div>
@@ -500,11 +504,18 @@ if ($tagID != null){
 タグ追加
 </div>
 <div id="HSfield" style="display: none;">
-<?php
+<?php//返事としてタグ追加
 	echo "<form action='result.php' method='post'><input value='タグ追加' type='submit' name='addTagWithTagRelationBtn'>";
-	foreach ($searchingTagA as $searchingTag) {
-		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+	echo "<input name='tagID' value='";
+
+	echo "'type='hidden' />";
+	echo "<input name='tagIDList[]' value='";
+	if ($articleID != null){
+		echo $articleID;
+	} else {
+		echo $tagID;
 	}
+	echo "'type='hidden' />";
 	echo "<input name='addTagWithTagRelation'type='text' /></form>";
 ?>
 </div>
@@ -549,8 +560,8 @@ foreach ($table as $articleA){//記事表示ループ
 	foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
 		echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 	}
-	echo "<input name='articleIDDel' value='";
-	echo $articleA["article"][ID];
+	echo "<input name='targetDelLinkID[]' value='";
+	echo $articleA["article"][LinkID];
 	echo "' type='hidden' />";//返信記事ID取得
 	echo "</form>";//記事削除フォーム終了
 
@@ -598,12 +609,9 @@ foreach ($table as $articleA){//記事表示ループ
 			foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
 				echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
 			}
-			echo "<input name='replyLinkIDDel' value='";
+			echo "<input name='targetDelLinkID[]' value='";
 			echo $Reply[LinkID];
 			echo "' type='hidden' />";//返信記事ID取得
-			echo "<input name='targetDelIDTo[]' value='";
-			echo $Reply[ID];
-			echo "' type='hidden' />";//記事ID取得
 			echo "</form>";//返信削除フォーム終了
 	//返事表示
 			echo "<form action='result.php' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
@@ -676,8 +684,8 @@ foreach ($table as $articleA){//記事表示ループ
 				echo "</form>";//重さ変更ポスト終了
 				
 				echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
-				echo "<input name='targetDelIDTo[]' value='";//削除
-				echo $articleA["article"][ID];
+				echo "<input name='targetDelLinkID[]' value='";//削除
+				echo $articleA["article"][LinkID];
 				echo "'type='hidden' />";
 				foreach ($searchingTagA as $searchingTag) {
 					echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";

@@ -364,15 +364,17 @@ if ( $articleID != null and $replyName != null) {
 $targetDelLinkID = $_REQUEST['targetDelLinkID'];
 if ($targetDelLinkID != null) {	
 	$DBSQL = new sql();
+	$DBSQL->open();
 	$DBSQL->delRelation($targetDelLinkID);
 }
 if ($articleEdit != null && is_array($articleEdit)) {
 	$DBSQL = new sql();
+	$DBSQL->open();
 	$DBSQL->articleEdit($articleEdit);
 }
 if ($tagEdit != null && is_array($tagEdit)) {//タグ編集
 	$DBSQL = new sql();
-	$DBSQL->articleEdit($tagEdit);
+	$DBSQL->tagEdit($tagEdit);
 	//$sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";//タグ選択　記事取得
 } 
 if ($articleDetaleID != null){
@@ -588,7 +590,7 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 	echo "<form action='result.php' method='post'>";//タグの編集
 	echo "<td><a href='result.php?tagID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a><input name='SearchType' value='$SearchType'type='hidden' />
 		<div id='viewMainTag' onClick='showHide();' ><input value='編集' type='submit' name='Edit'></div>
-		<div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /><input name='SearchType' value='$SearchType'type='hidden' /></form>";
+		<div id='editMainTag'><input name='tagEdit[0][name]' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagEdit[0][ID]' value='$searchingTag[ID]'type='hidden' /><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /><input name='SearchType' value='$SearchType'type='hidden' /></form>";
 	echo "<form action='tagRelationResist.php' method='post'>";//親タグに対して検索関係追加	
 	echo "<input name='targetTagIDFrom' value='$searchingTag[ID]'type='hidden' />";
 	//当該タグID　追加nameを送信する
@@ -649,7 +651,7 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 <?php
 print_r ($taghash);
 foreach ($taghash as $key => $tagValue){
-echo "<th><a href='tagDetale.php?tagID=$tagValue[2]' target='_blank'>$tagValue[1]</a>";
+echo "<th><a href='tagDetale.php?tagDetaleID=$tagValue[2]' target='_blank'>$tagValue[1]</a>";
 echo "<br>owner";
 echo $tagValue[3];
 echo "</th>";

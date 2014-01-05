@@ -272,7 +272,7 @@ if ($ReplyTag != null) {//返事としてタグを追加する
         }
 }
 if ($articleAdd != null) {//記事を追加する
-        	$pdo->beginTransaction();//返事記事を追加する
+        $pdo->beginTransaction();//返事記事を追加する
 	$sql = "INSERT INTO  `db0tagplus`.`article` (
 	`ID` ,
 	`name` ,
@@ -316,7 +316,13 @@ if ($articleAdd != null) {//記事を追加する
 	$pdo->commit();
 }
 
-if ( $articleID != null and $replyName != null) {
+if ($replyAdd != null  and is_array($tryArticleAdd)) {
+	$tryArticleAdd[ownerID] = 1;
+	$DBSQL = new sqlComp();
+	$DBSQL->replyAdd($tryArticleAdd);
+}
+/*
+if ($articleID != null and $replyName != null) {
         $pdo->beginTransaction();//返事を追加する
         $sql = "INSERT INTO  `db0tagplus`.`article` (
         `ID` ,
@@ -360,26 +366,30 @@ if ( $articleID != null and $replyName != null) {
         $pdo->exec($sql); 
         $pdo->commit();
 }
+*/
 $targetDelLinkID = $_REQUEST['targetDelLinkID'];
 if ($targetDelLinkID != null) {	
 	$DBSQL = new sql();
+	$DBSQL->open();
 	$DBSQL->delRelation($targetDelLinkID);
 }
 if ($articleEdit != null && is_array($articleEdit)) {
 	$DBSQL = new sql();
+	$DBSQL->open();
 	$DBSQL->articleEdit($articleEdit);
 }
-if ($tagEdit != null) {//タグ編集
-        $pdo->beginTransaction();
-        $sql = "UPDATE `db0tagplus`.`Tag` SET `name` = '$tagEdit' WHERE `Tag`.`ID` = $tagID;";
-        $pdo->exec($sql); $pdo->commit();
-} else {
-          if ($articleDetaleID != null){
-                $sql = "SELECT * FROM `article` WHERE `ID`=$articleDetaleID";//複数条件の時のタグ選択　記事取得
-        } else {
-                $sql = "SELECT * FROM `Tag` WHERE `ID`=$tagDetaleID";
-        }
+if ($tagEdit != null && is_array($tagEdit)) {//タグ編集
+	$DBSQL = new sql();
+	$DBSQL->open();
+	$DBSQL->tagEdit($tagEdit);
+	//$sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";//タグ選択　記事取得
 }
+if ($articleDetaleID != null){
+        $sql = "SELECT * FROM `article` WHERE `ID`=$articleDetaleID";//複数条件の時のタグ選択　記事取得
+} else {
+        $sql = "SELECT * FROM `Tag` WHERE `ID`=$tagDetaleID";
+}
+
 $tagG = $pdo->query($sql);
 $i = 0;
 while ($row = $tagG->fetch()) {//タグIDを取得
@@ -417,6 +427,7 @@ $detaleID = $tagDetaleID;
 } else {
 $detaleID = $articleDetaleID;
 }
+print_r ($detaleID);
 //タグ検索関連
 $table = array();
 $k = 0;//タグハッシュ
@@ -556,14 +567,14 @@ while ($row = $articleSelect->fetch()) {
 <form action='result.php' method='post'>
 <?php
 if ($searchType == 0) {
-echo '<input type="radio" name="searchType" value="0" checked> AND
+	echo '<input type="radio" name="searchType" value="0" checked> AND
 <input type="radio" name="searchType" value="1"> OR';
 } else {
-echo '<input type="radio" name="searchType" value="0"> AND
+	echo '<input type="radio" name="searchType" value="0"> AND
 <input type="radio" name="searchType" value="1" checked> OR';
 }
         $allRequest = $_REQUEST;
-        print_r ($allRequest);
+        //print_r ($allRequest);
         foreach ($tagIDList as $tagIDsepareted){
         print $tagIDsepareted;
         echo "<input name='tagIDList[]' value='$tagIDsepareted'type='hidden' />";
@@ -577,14 +588,20 @@ echo '<input type="radio" name="searchType" value="0"> AND
 $p = 0;
 foreach ($searchingTagA as $searchingTag) {//タグを表示する
         echo "<form action='result.php' method='post'>";//タグの編集
-        echo "<td><a href='result.php?tagID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a><input name='SearchType' value='$SearchType'type='hidden' />
+        echo "<td>";
+	if ($tagDetaleID != null) {
+		echo "<a href='result.php?tagID=$searchingTag[ID]' target='_blank'>$searchingTag[name]</a>";
+	} else {
+		echo $searchingTag[name];
+	}
+	echo "<input name='SearchType' value='$SearchType'type='hidden' />
                 <div id='viewMainTag' onClick='showHide();' ><input value='編集' type='submit' name='Edit'></div>
                 <div id='editMainTag'><input name='tagEdit' value='$searchingTag[name]' style='visible: hidden;' onChange='changeMainTag();' onSubmit='submitMainTag(); return true;' /></div><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' /><input name='SearchType' value='$SearchType'type='hidden' /></form>";
         echo "<form action='tagRelationResist.php' method='post'>";//親タグに対して検索関係追加        
         echo "<input name='targetTagIDFrom' value='$searchingTag[ID]'type='hidden' />";
         //当該タグID　追加nameを送信する
         echo "<input value='追加' type='submit' name='addArticle'><input name='addTagName' type='text' /></form>";//追加フォーム終了
-
+	
         echo "<ul id='tagSearchRelation$p'><li>検索関係<ul>";
         $p++;
         if ($searchingTag[tagSSug] != null){
@@ -604,11 +621,13 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 </div>
 <div id="HSfield" style="display: none;">
 <?php
-        echo "<form action='result.php' method='post'><input value='記事追加' type='submit' name='addArticle'>";
+        echo "<form action='tagDetale.php' method='post'><input value='記事追加' type='submit' name='replyAdd'>";
         foreach ($searchingTagA as $searchingTag) {
                 echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
         }
-        echo "<input name='articleAdd'type='text' /></form>";
+	 echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+	 echo "<input name='triArticleAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+        echo "<input name='triArticleAdd[name]'type='text' /></form>";
 
 ?>
 </div>
@@ -640,7 +659,7 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 <?php
 print_r ($taghash);
 foreach ($taghash as $key => $tagValue){
-echo "<th><a href='tagDetale.php?tagID=$tagValue[2]' target='_blank'>$tagValue[1]</a>";
+echo "<th><a href='result.php?tagID=$tagValue[2]' target='_blank'>$tagValue[1]</a>";
 echo "<br>owner";
 echo $tagValue[3];
 echo "</th>";

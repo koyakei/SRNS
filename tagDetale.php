@@ -361,21 +361,14 @@ if ( $articleID != null and $replyName != null) {
         $pdo->commit();
 }
 $targetDelLinkID = $_REQUEST['targetDelLinkID'];
-if ($targetDelLinkID != null) {//リンク元とリンク先を指定して削除これでリンク削除全般ができる
-        foreach ($targetDelLinkID as $ID){
-                        $pdo->beginTransaction();
-                        $sql = "DELETE FROM `db0tagplus`.`LINK` WHERE `LINK`.`ID` = $ID;";
-                        $pdo->exec($sql); $pdo->commit();
+if ($targetDelLinkID != null) {	
+	$DBSQL = new sql();
+	$DBSQL->delRelation($targetDelLinkID);
 }
+if ($articleEdit != null && is_array($articleEdit)) {
+	$DBSQL = new sql();
+	$DBSQL->articleEdit($articleEdit);
 }
-
-
-
-if ($articleEdit != null) {
-$pdo->beginTransaction();
- $sql = "UPDATE `db0tagplus`.`article` SET `name` = '$articleEdit' WHERE `article`.`ID` = $articleID;";
-$pdo->exec($sql); $pdo->commit();
-};
 if ($tagEdit != null) {//タグ編集
         $pdo->beginTransaction();
         $sql = "UPDATE `db0tagplus`.`Tag` SET `name` = '$tagEdit' WHERE `Tag`.`ID` = $tagID;";

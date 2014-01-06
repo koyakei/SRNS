@@ -40,6 +40,7 @@ require_once("cmn/debug.php");
 require_once("cmn/utils.php");
 require_once("cmn/functions.php");
 require_once("cmn/specialTagIDList.php");
+$currentURL = $_SERVER['REQUEST_URI'];
 include("sql/sql.php");
 $pdo = db_open();
 $articleAdd = $_REQUEST['articleAdd'];
@@ -364,19 +365,16 @@ if ( $articleID != null and $replyName != null) {
 $targetDelLinkID = $_REQUEST['targetDelLinkID'];
 if ($targetDelLinkID != null) {	
 	$DBSQL = new sql();
-	$DBSQL->open();
 	$DBSQL->delRelation($targetDelLinkID);
 }
 if ($articleEdit != null && is_array($articleEdit)) {
 	$DBSQL = new sql();
-	$DBSQL->open();
 	$DBSQL->articleEdit($articleEdit);
 }
 if ($tagEdit != null && is_array($tagEdit)) {//タグ編集
 	$DBSQL = new sql();
 	$DBSQL->tagEdit($tagEdit);
-	//$sql = "SELECT '$tagEdit' as name, '$tagID' as ID FROM `Tag` WHERE `ID` =$tagID";//タグ選択　記事取得
-} 
+}
 if ($articleDetaleID != null){
   	$sql = "SELECT * FROM `article` WHERE `ID`=$articleID";//複数条件の時のタグ選択　記事取得
 } else {
@@ -692,6 +690,7 @@ foreach ($table as $articleA){//記事表示ループ
 	echo "編集";
 	echo "</div>";
 	echo "<div id='HSfield' style='display: none;'>";//返信展開開始
+        echo "<form action='$currentURL' method='post'>";//記事削除フォーム開始
 	echo "<div id='viewMainTag' onClick='editArticle();' ><input value='編集' type='submit' name='Edit'></div>";
 	echo "<div id='editMainTag'><input name='articleEdit[0][name]' value='";
 	echo $articleA["article"][name];

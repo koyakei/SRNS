@@ -1,9 +1,7 @@
 <html>
 <head>
-
 <link href="css/sitemapstyler.css" rel="stylesheet" type="text/css" media="screen" />
 <script type="text/javascript" src="js/sitemapstyler.js"></script>
-
 <link rel="stylesheet" type="text/css" href="css/tablesorter.css" />
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css" href="css/k.css"/>
@@ -29,18 +27,17 @@ function toggleShow(obj) {
     }
  }
 </script>
-
 <title>Top</title>
 </head>
 <body>
-
 <?php
 ini_set( 'display_errors', 1 );
-require_once("cmn/debug.php");
-require_once("cmn/utils.php");
-require_once("cmn/functions.php");
-require_once("cmn/specialTagIDList.php");
-include("sql/sql.php");
+require_once dirname(__FILE__)."/directory.php";
+require_once dirname(__FILE__)."/cmn/debug.php";
+require_once dirname(__FILE__)."/cmn/utils.php";
+require_once dirname(__FILE__)."/cmn/functions.php";
+require_once dirname(__FILE__)."/cmn/specialTagIDList.php";
+include dirname(__FILE__)."/sql/sql.php";
 $pdo = db_open();
 $articleAdd = $_REQUEST['articleAdd'];
 $replyAdd = $_REQUEST['replyAdd'];
@@ -48,9 +45,10 @@ $replyName = $_REQUEST['articleReply'];
 $tagWeight = $_REQUEST['tagWeight'];//weight 変更
 $targetLinkID = $_REQUEST['targetLinkID'];
 $currentURL = $_SERVER['REQUEST_URI'];
-if ($tagWeight != null) {
+print_r ($currentURL);
+if($tagWeight != null){
 $pdo->beginTransaction();
- $sql = "UPDATE `db0tagplus`.`LINK` SET `quant` = $tagWeight WHERE `LINK`.`ID` = $targetLinkID;";
+$sql = "UPDATE `db0tagplus`.`LINK` SET `quant` = $tagWeight WHERE `LINK`.`ID` = $targetLinkID;";
 $pdo->exec($sql); $pdo->commit();
 }
 $tagName = $_REQUEST['addTagRelation'];
@@ -274,57 +272,6 @@ if ($ReplyTag != null) {//返事としてタグを追加する
                 }
         }
 }
-//$tagDetaleID = $_REQUEST['tagDetaleID'];
-//$replyName = $_REQUEST['replyName'];
-//echo $tagDetaleID;
-/*
-if ($replyName != null and $replyName != null) {
-        $pdo->beginTransaction();//返事を追加する
-        $sql = "INSERT INTO  `db0tagplus`.`article` (
-        `ID` ,
-        `name` ,
-        `owner` ,
-        `Created_time`
-        )
-        VALUES (
-        NULL ,  '$replyName', '1', NOW( )
-        );";
-        $pdo->exec($sql); 
-        $LINK1stID = $pdo->lastInsertId('ID');
-	echo $LINK1stID;
-        $pdo->commit();
-        $pdo->beginTransaction();//元記事と返信記事のリンクを作成
-        $sql = "INSERT INTO  `db0tagplus`.`LINK` (
-        `ID` ,
-        `LFrom` ,
-        `LTo` ,
-        `quant` ,
-        `owner`,
-        `Created_time`
-        )
-        VALUES (
-        NULL ,  '$articleID',  '$LINK1stID',  '1',  '$ownerID', NOW( )
-        );";
-        $pdo->exec($sql); 
-        $lastAIID = $pdo->lastInsertId('ID');//最後に追加したLINK　テーブルのIDを取得
-        $pdo->commit();
-        $pdo->beginTransaction();//元記事-返信リンクと返信タグリンクを作成
-        $sql = "INSERT INTO  `db0tagplus`.`LINK` (
-        `ID` ,
-        `LFrom` ,
-        `LTo` ,
-        `quant` ,
-        `owner`,
-        `Created_time`
-        )
-        VALUES (
-        NULL ,  '$replyTagID',  '$lastAIID',  '1',  '$ownerID', NOW( )
-        );";
-        $pdo->exec($sql); 
-        $pdo->commit();
-}
-*/
-
 if ($replyAdd != null  and is_array($replyAdd)) {
 	$replyAdd[ownerID] = $ownerID;
 	$DBSQL = new sql();
@@ -376,7 +323,6 @@ while ($row = $tagG->fetch()) {//タグIDを取得
                 $o++;
         }
         $i++;
-        
 }
 ?>
 <?php
@@ -458,7 +404,7 @@ $table2 = array();
 $h = 0;
 $sql = "SELECT  `tagLink`.`LFrom` AS TLFROM, `Tag` . *, `LINK`.`ID` AS LinkID FROM  `LINK` INNER JOIN  `LINK` AS tagLink ON  `LINK`.`ID` = `tagLink`.`LTo`, `Tag`  WHERE  `LINK`.`LFrom` =$detaleID AND `tagLink`.`LFrom` =$replyTagID  AND `Tag` . `ID` = `LINK` . `LTo`";
 $articleSelect = $pdo->query($sql);
-while ($row = $articleSelect->fetch()) {
+while ($row = $articleSelect->fetch()){
         $articleName = htmlspecialchars($row['name']);
         $articleID = htmlspecialchars($row['ID']);
         $ownerID = htmlspecialchars($row['owner']);
@@ -563,7 +509,6 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
         if ($searchingTag[tagSSug] != null){
                 foreach ($searchingTag[tagSSug] as $tagSug){
                         echo "<li><a href='result.php?tagID=$tagSug[ID]'>$tagSug[name]</a></li>";
-                        
                 }
         }
         echo "</ul></li></ul>";
@@ -585,8 +530,10 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 	echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
 	if ($articleDetaleID != null and $tagDetaleID == null) {
 	echo "<input name='replyAdd[fromID]' value='$articleDetaleID'type='hidden' />";
+	echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
 	} else {
 	echo "<input name='replyAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+	echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
 	}
         echo "<input name='replyAdd[name]'type='text' /></form>";
 
@@ -597,24 +544,28 @@ foreach ($searchingTagA as $searchingTag) {//タグを表示する
 </div>
 <div id="HSfield" style="display: none;">
 <?php
-        echo "<form action='result.php' method='post'><input value='タグ追加' type='submit' name='addTagWithTagRelationBtn'>";
+	echo "<form action='$currentURL' method='post'><input value='タグ追加' type='submit' name='addTagWithTagRelationBtn'>";
         foreach ($searchingTagA as $searchingTag) {
-                echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
+                echo "<input name='tagEdit[ID]' value='$searchingTag[ID]'type='hidden' />";
         }
-        echo "<input name='addTagWithTagRelation'type='text' /></form>";
-
+	echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+	if ($articleDetaleID != null and $tagDetaleID == null) {
+		echo "<input name='replyAdd[fromID]' value='$articleDetaleID'type='hidden' />";
+		echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
+	} else {
+		echo "<input name='replyAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+		echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+	}
+        echo "<input name='tagEdit[name]'type='text' /></form>";
 ?>
 </div>
 </td>
 </tr>
 </table>
-
 <table class="sortable draggable" border="1">
 <thead>
 <tr>
 <th class="sorttable_nosort">
-
-
 </th>
 <th></th>
 <?php
@@ -623,18 +574,17 @@ echo nullda; }else{
 print_r ($taghash);
 
 foreach ($taghash as $key => $tagValue){
-echo "<th><a href='result.php?tagID=$tagValue[2]' target='_blank'>$tagValue[1]</a>";
-echo "<br>owner";
-echo $tagValue[3];
-echo "</th>";
-echo "<th>";
-echo "</th>";
+	echo "<th><a href='result.php?tagID=$tagValue[2]' target='_blank'>$tagValue[1]</a>";
+	echo "<br>owner";
+	echo $tagValue[3];
+	echo "</th>";
+	echo "<th>";
+	echo "</th>";
 }
 }
 ?>
 </tr></thead><tbody>
 <?php
-
 foreach ($table as $articleA){//記事表示ループ
         echo "<tr>";
         echo "<td><form action='result.php' method='post'>";
@@ -651,16 +601,20 @@ foreach ($table as $articleA){//記事表示ループ
                 echo $articleA["article"][name];
                 echo "</a>";
         }
-        echo "<form action='tagDetale.php' method='post'>";//記事削除フォーム開始
+        echo "<form action='$currentURL' method='post'>";//記事削除フォーム開始
 		echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
 	echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
         echo "<input value='記事の削除' type='submit' name='articleDel'>";//ボタン
-        foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
-                echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-        }
         echo "<input name='targetDelLinkID[]' value='";
         echo $articleA["article"][LinkID];
         echo "' type='hidden' />";//返信記事ID取得
+	if ($articleDetaleID != null and $tagDetaleID == null) {
+		echo "<input name='replyAdd[fromID]' value='$articleDetaleID'type='hidden' />";
+		echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
+	} else {
+		echo "<input name='replyAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+		echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+	}
         echo "</form>";//記事削除フォーム終了
 
         echo "<div onClick='toggleShow(this);'>";
@@ -680,6 +634,13 @@ foreach ($table as $articleA){//記事表示ループ
         foreach ($searchingTagA as $searchingTag) {
                 echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
         }
+	if ($articleDetaleID != null and $tagDetaleID == null) {
+		echo "<input name='replyAdd[fromID]' value='$articleDetaleID'type='hidden' />";
+		echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
+	} else {
+		echo "<input name='replyAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+		echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+	}
         echo "</form>";
 
         
@@ -710,16 +671,27 @@ foreach ($table as $articleA){//記事表示ループ
                         }
                         echo "<form action='result.php' method='post'>";//返信削除フォーム開始
                         echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
-                        foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
-                                echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-                        }
                         echo "<input name='targetDelLinkID[]' value='";
                         echo $Reply[LinkID];
                         echo "' type='hidden' />";//返信記事ID取得
+			if ($articleDetaleID != null and $tagDetaleID == null) {
+				echo "<input name='replyAdd[fromID]' value='$articleDetaleID'type='hidden' />";
+				echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
+			} else {
+				echo "<input name='replyAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+				echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+			}
                         echo "</form>";//返信削除フォーム終了
         //返事表示
-                        echo "<form action='result.php' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
+                        echo "<form action='$currentURL' method='post'><div onClick='toggleShow(this);'>"; //返事を書き直す
                         echo "Edit Reply返事を書き直す";
+			if ($articleDetaleID != null and $tagDetaleID == null) {
+				echo "<input name='replyAdd[fromID]' value='$articleDetaleID'type='hidden' />";
+				echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
+			} else {
+				echo "<input name='replyAdd[fromID]' value='$tagDetaleID'type='hidden' />";
+				echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+			}
                         echo "</div>";
                         echo "<input name='articleEdit[ID]' value='";
                         echo $Reply[ID];
@@ -791,15 +763,16 @@ foreach ($table as $articleA){//記事表示ループ
                                 echo "<form action='result.php' method='post'>";//重さ変更ポスト
                                 echo "<input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='targetLinkID' value='$tagA[linkID]'type='hidden' /><input value='重さ変更' type='submit' name='weghit'><input name='searchType' value='$searchType'type='hidden' /><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
                                 echo "</form>";//重さ変更ポスト終了
-                                
                                 echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
                                 echo "<input name='targetDelLinkID[]' value='";//削除
                                 echo $articleA["article"][LinkID];
                                 echo "'type='hidden' />";
-                                foreach ($searchingTagA as $searchingTag) {
-                                        echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-                                }
-                                echo "<input name='targetDelIDFrom[]' value='$tagA[ID]'type='hidden' /><input name='searchType' value='$searchType'type='hidden' /><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a>";
+				if ($articleDetaleID != null and $tagDetaleID == null) {
+					echo "<input name='articleDetaleID' value='$articleDetaleID'type='hidden' />";
+				} else {
+					echo "<input name='tagDetaleID' value='$tagDetaleID'type='hidden' />";
+				}
+                                echo "<input name='searchType' value='$searchType'type='hidden' /><a href='result.php?tagID=$tagA[ID]' target='_blank'>$tagA[name]</a>";
                                 echo "</form>"; 
                         }
                         
@@ -880,9 +853,6 @@ foreach ($table2 as $articleA){
                         }
                         echo "<form action='result.php' method='post'>";//返信削除フォーム開始
                         echo "<input value='返信の削除' type='submit' name='articleReply'>";//ボタン
-                        foreach ($searchingTagA as $searchingTag) {//使用中の検索ID取得
-                                echo "<input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
-                        }
                         echo "<input name='targetDelLinkID[]' value='";
                         echo $Reply[LinkID];
                         echo "' type='hidden' />";//返信記事ID取得
@@ -956,11 +926,10 @@ foreach ($table2 as $articleA){
                                         }
                                         echo "<input name='searchType' value='$searchType'type='hidden' /></form>";
                                 }
-                                echo "<form action='result.php' method='post'>";//重さ変更ポスト
+                                echo "<form action='$currentURL.php' method='post'>";//重さ変更ポスト
                                 echo "<input type='number' name='tagWeight' min='0' max='100000' value='$tagA[quant]'><input name='targetLinkID' value='$tagA[linkID]'type='hidden' /><input value='重さ変更' type='submit' name='weghit'><input name='searchType' value='$searchType'type='hidden' /><input name='tagIDList[]' value='$searchingTag[ID]'type='hidden' />";
                                 echo "</form>";//重さ変更ポスト終了
-                                
-                                echo "<form action='result.php' method='post'><input value='削除' type='submit' name='tagDel'>";
+                                echo "<form action='$currentURL' method='post'><input value='削除' type='submit' name='tagDel'>";
                                 echo "<input name='targetDelLinkID[]' value='";//削除
                                 echo $articleA["tag1"][LinkID];
                                 echo "'type='hidden' />";

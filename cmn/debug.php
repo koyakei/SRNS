@@ -5,7 +5,7 @@ print_r($_POST);
 echo "</pre>";
 
 echo "SESSION Data<pre>";
-print_r($_SESSION);
+//print_r($_SESSION);
 echo "</pre>";
 
 ?>

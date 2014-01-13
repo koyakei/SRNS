@@ -1,8 +1,9 @@
 <?php
   // DBÚ‘±
   function db_open(){
- $pdo = new PDO("mysql:host=www49.atpages.jp;dbname=db0tagplus", "tagplus",
-"7JAKPuhARAKbkg");
+ $pdo = new PDO("mysql:localhost;dbname=db0tagplus", "root",
+"");
+$pdo->query("use db0tagplus;");
     return $pdo;
   }
 

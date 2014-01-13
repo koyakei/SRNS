@@ -35,6 +35,7 @@ function toggleShow(obj) {
 <body>
 
 <?php
+error_reporting(E_STRICT);
 ini_set( 'display_errors', 1 );
 require_once("cmn/debug.php");
 require_once("cmn/utils.php");
